@@ -1,0 +1,82 @@
+[
+  {
+    "name": "gt",
+    "value": "2107473111679410401",
+    "domain": ".x.com",
+    "path": "/",
+    "expires": 1791304719.740486,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "guest_id",
+    "value": "v1%3A179129571776314696",
+    "domain": ".x.com",
+    "path": "/",
+    "expires": 1825510119.740773,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__cuid",
+    "value": "b6bfb817-c40e-4dd6-a8ac-2f5391728229",
+    "domain": "x.com",
+    "path": "/",
+    "expires": 1825856598,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "__cuid",
+    "value": "b6bfb817-c40e-4dd6-a8ac-2f5391728229",
+    "domain": ".x.com",
+    "path": "/",
+    "expires": 1825856598,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "g_state",
+    "value": "{\"i_l\":0,\"i_ll\":1791296600985,\"i_b\":\"OkMbortkCSbfH5mj9pUs0lknYTWY/4HIUyDi8SppNpw\",\"i_e\":{\"enable_itp_optimization\":24},\"i_et\":1791296600985}",
+    "domain": "x.com",
+    "path": "/",
+    "expires": 1806848600,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "twid",
+    "value": "u%3D1762520267065331712",
+    "domain": ".x.com",
+    "path": "/",
+    "expires": 1822832633.07034,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "auth_token",
+    "value": "3c50c6997d693d93261b5367ab657cee240129ec",
+    "domain": ".x.com",
+    "path": "/",
+    "expires": 1822832633.070524,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__cf_bm",
+    "value": "0XMLbzQ4YWTSpjLGs9..r2977fvCDnPx_AC.5WJtxag-1791296631.9823637-1.0.1.1-UWCy_H9S7vWeBrZXI3MLsmVDro8PiHIcNvVY1tM5uD1INKo1CI7opHvrdOeGj0Z0.i2i_RhnuYo39EkRad2J4rlo1YR09y4X7qexy6BOgUal8nwF38ooIq3jbUIlH9TH",
+    "domain": ".x.com",
+    "path": "/",
+    "expires": 1791298433.070617,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  }
+]

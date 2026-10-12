@@ -1,0 +1,20 @@
+[
+  {
+    "id": "acc1",
+    "name": "اکانت اصلی",
+    "username": "@example",
+    "active": true,
+    "last_tweet_at": "2026-10-06T17:55:05.752397",
+    "total_tweets": 1,
+    "cookies_saved": true
+  },
+  {
+    "id": "acc_93a66830",
+    "name": "تست",
+    "username": "@test",
+    "active": true,
+    "last_tweet_at": "2026-10-06T17:37:57.728146",
+    "total_tweets": 2,
+    "cookies_saved": true
+  }
+]
