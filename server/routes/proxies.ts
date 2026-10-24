@@ -45,6 +45,8 @@ router.post('/proxies', (req, res) => {
   }
 
   const proxies = loadProxiesData();
+  try { lines.forEach(parseProxyUri); }
+  catch (err: any) { return res.status(400).json({ success: false, error: err.message }); }
   const addedList: ProxyConfig[] = [];
 
   for (const rawLine of lines) {
@@ -87,7 +89,7 @@ router.post('/proxies/:id/test', async (req, res) => {
   }
 
   addLog('INFO', `در حال سنجش پینگ دوگانه (گوگل و X) برای پروکسی [${prx.name}] (${prx.protocol.toUpperCase()})...`, 'xray_core');
-  const result = await measureProxyDualPing(prx.server, prx.port);
+  const result = await measureProxyDualPing(prx.url);
 
   prx.latency = result.latency;
   prx.google_latency = result.google_latency;
@@ -113,7 +115,7 @@ router.post('/proxies/test-all', async (req, res) => {
   addLog('INFO', `شروع سنجش پینگ سراسری گوگل و X برای ${proxies.length} پروکسی...`, 'xray_core');
 
   const testPromises = proxies.map(async (p) => {
-    const result = await measureProxyDualPing(p.server, p.port);
+    const result = await measureProxyDualPing(p.url);
     p.latency = result.latency;
     p.google_latency = result.google_latency;
     p.x_latency = result.x_latency;

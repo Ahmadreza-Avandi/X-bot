@@ -17,6 +17,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 import { postTweetWithStealthBrowser } from './server/services/automation.js';
+import { parseProxyUri, measureProxyDualPing, startProxy, type ProxyLease } from './server/services/xray.js';
 
 // Data directories
 const DATA_DIR = path.join(__dirname, 'data');
@@ -190,175 +191,6 @@ function loadQueueData(): any[] {
 function saveQueueData(queue: any[]) {
   ensureDirs();
   fs.writeFileSync(QUEUE_FILE, JSON.stringify(queue, null, 2), 'utf-8');
-}
-
-// Parser for V2Ray / Xray / Shadowsocks / Trojan / SOCKS5 / HTTP URI configs
-function parseProxyUri(raw: string): { protocol: string; server: string; port: number; name: string } {
-  const trimmed = raw.trim();
-  try {
-    if (trimmed.startsWith('vmess://')) {
-      const b64 = trimmed.substring(8);
-      const decoded = Buffer.from(b64, 'base64').toString('utf-8');
-      const json = JSON.parse(decoded);
-      return {
-        protocol: 'vmess',
-        server: json.add || '127.0.0.1',
-        port: parseInt(json.port, 10) || 443,
-        name: json.ps ? decodeURIComponent(json.ps) : `VMess-${json.add}:${json.port}`,
-      };
-    }
-
-    const url = new URL(trimmed);
-    const protocol = url.protocol.replace(':', '').toLowerCase();
-    const server = url.hostname || '127.0.0.1';
-    const port = url.port ? parseInt(url.port, 10) : (['vless', 'trojan', 'https'].includes(protocol) ? 443 : 1080);
-    let name = url.hash ? decodeURIComponent(url.hash.replace('#', '')) : `${protocol.toUpperCase()}-${server}:${port}`;
-    return {
-      protocol,
-      server,
-      port,
-      name,
-    };
-  } catch {
-    const match = trimmed.match(/^([a-zA-Z0-9_-]+):\/\/(?:[^@]+@)?([^:/?#]+)(?::(\d+))?(?:[^\#]*)?(?:#(.*))?$/);
-    if (match) {
-      return {
-        protocol: match[1].toLowerCase(),
-        server: match[2],
-        port: match[3] ? parseInt(match[3], 10) : 443,
-        name: match[4] ? decodeURIComponent(match[4]) : `${match[1].toUpperCase()}-${match[2]}`,
-      };
-    }
-    return {
-      protocol: 'custom',
-      server: 'custom-node',
-      port: 443,
-      name: trimmed.substring(0, 32),
-    };
-  }
-}
-
-// Single target ping probe
-async function probeTarget(host: string, port: number, baseMs: number): Promise<{ reachable: boolean; latency: number }> {
-  return new Promise((resolve) => {
-    const start = Date.now();
-    const socket = new net.Socket();
-    let hasResolved = false;
-
-    const cleanup = () => {
-      socket.removeAllListeners();
-      socket.destroy();
-    };
-
-    socket.setTimeout(2200);
-
-    socket.on('connect', () => {
-      if (hasResolved) return;
-      hasResolved = true;
-      const rtt = Math.max(15, Date.now() - start);
-      cleanup();
-      resolve({ reachable: true, latency: baseMs + rtt });
-    });
-
-    socket.on('timeout', () => {
-      if (hasResolved) return;
-      hasResolved = true;
-      cleanup();
-      const jitter = Math.floor(Math.random() * 35) - 10;
-      resolve({ reachable: true, latency: Math.max(30, baseMs + jitter) });
-    });
-
-    socket.on('error', () => {
-      if (hasResolved) return;
-      hasResolved = true;
-      cleanup();
-      const jitter = Math.floor(Math.random() * 40) - 5;
-      resolve({ reachable: true, latency: Math.max(35, baseMs + jitter) });
-    });
-
-    try {
-      socket.connect(port, host);
-    } catch {
-      if (!hasResolved) {
-        hasResolved = true;
-        resolve({ reachable: true, latency: baseMs + 15 });
-      }
-    }
-  });
-}
-
-// Dual Latency tester: measures Google ping AND X (Twitter) ping
-async function measureProxyDualPing(server: string, port: number): Promise<{
-  reachable: boolean;
-  google_latency: number;
-  x_latency: number;
-  latency: number;
-}> {
-  return new Promise(async (resolve) => {
-    const nodeStart = Date.now();
-    const socket = new net.Socket();
-    let baseLatency = 85;
-
-    const cleanup = () => {
-      socket.removeAllListeners();
-      socket.destroy();
-    };
-
-    socket.setTimeout(2000);
-
-    socket.on('connect', async () => {
-      baseLatency = Math.max(20, Date.now() - nodeStart);
-      cleanup();
-      const [googleRes, xRes] = await Promise.all([
-        probeTarget('google.com', 443, baseLatency),
-        probeTarget('x.com', 443, baseLatency + 18),
-      ]);
-      const avg = Math.round((googleRes.latency + xRes.latency) / 2);
-      resolve({
-        reachable: true,
-        google_latency: googleRes.latency,
-        x_latency: xRes.latency,
-        latency: avg,
-      });
-    });
-
-    socket.on('timeout', async () => {
-      cleanup();
-      baseLatency = Math.floor(75 + Math.random() * 55);
-      const googleLat = baseLatency + Math.floor(Math.random() * 20);
-      const xLat = baseLatency + Math.floor(15 + Math.random() * 25);
-      resolve({
-        reachable: true,
-        google_latency: googleLat,
-        x_latency: xLat,
-        latency: Math.round((googleLat + xLat) / 2),
-      });
-    });
-
-    socket.on('error', async () => {
-      cleanup();
-      baseLatency = Math.floor(85 + Math.random() * 50);
-      const googleLat = baseLatency + Math.floor(Math.random() * 20);
-      const xLat = baseLatency + Math.floor(18 + Math.random() * 28);
-      resolve({
-        reachable: true,
-        google_latency: googleLat,
-        x_latency: xLat,
-        latency: Math.round((googleLat + xLat) / 2),
-      });
-    });
-
-    try {
-      socket.connect(port, server);
-    } catch {
-      resolve({
-        reachable: true,
-        google_latency: 95,
-        x_latency: 120,
-        latency: 108,
-      });
-    }
-  });
 }
 
 // Routes
@@ -560,6 +392,8 @@ app.post('/api/proxies', (req, res) => {
   }
 
   const proxies = loadProxiesData();
+  try { lines.forEach(parseProxyUri); }
+  catch (err: any) { return res.status(400).json({ success: false, error: err.message }); }
   const addedList: ProxyConfig[] = [];
 
   for (const rawLine of lines) {
@@ -603,7 +437,7 @@ app.post('/api/proxies/:id/test', async (req, res) => {
   }
 
   addLog('INFO', `در حال سنجش پینگ دوگانه (گوگل و X) برای پروکسی [${prx.name}] (${prx.protocol.toUpperCase()})...`, 'xray_core');
-  const result = await measureProxyDualPing(prx.server, prx.port);
+  const result = await measureProxyDualPing(prx.url);
 
   prx.latency = result.latency;
   prx.google_latency = result.google_latency;
@@ -630,7 +464,7 @@ app.post('/api/proxies/test-all', async (req, res) => {
   addLog('INFO', `شروع سنجش پینگ سراسری گوگل و X برای ${proxies.length} پروکسی...`, 'xray_core');
 
   const testPromises = proxies.map(async (p) => {
-    const result = await measureProxyDualPing(p.server, p.port);
+    const result = await measureProxyDualPing(p.url);
     p.latency = result.latency;
     p.google_latency = result.google_latency;
     p.x_latency = result.x_latency;
@@ -1009,6 +843,7 @@ interface ActiveBrowserSession {
   cookiesCaptured: boolean;
   capturedCount: number;
   pollTimer?: NodeJS.Timeout;
+  proxyLease?: ProxyLease;
 }
 
 const activeBrowsers: Map<string, ActiveBrowserSession> = new Map();
@@ -1243,18 +1078,16 @@ async function launchChromeForAccount(
     '--lang=fa-IR,en-US,en',
   ];
 
-  // Attach proxy if assigned
+  let proxyLease: ProxyLease | undefined;
   if (acc.proxy_id) {
-    const proxies = loadProxiesData();
-    const prx = proxies.find((p) => p.id === acc.proxy_id);
-    if (prx) {
-      const proto = prx.protocol.toLowerCase();
-      if (['http', 'https', 'socks5', 'socks'].includes(proto)) {
-        args.push(`--proxy-server=${proto}://${prx.server}:${prx.port}`);
-        addLog('INFO', `تنظیمات اتصال کروم به پروکسی [${prx.name}] (${prx.protocol.toUpperCase()}://${prx.server}:${prx.port}) اعمال شد.`, 'xray_core');
-      } else {
-        addLog('INFO', `اکانت به پروکسی [${prx.name}] (${prx.protocol.toUpperCase()}) متصل است. برای امنیت حداکثری و دور زدن لیمیت X، می‌توانید از ورود مستقیم توکن در «پیست کوکی» استفاده نمایید.`, 'xray_core');
-      }
+    const prx = loadProxiesData().find(p => p.id === acc.proxy_id);
+    if (!prx) return { success: false, error: 'کانفیگ متصل به اکانت یافت نشد.' };
+    try {
+      proxyLease = await startProxy(prx.url);
+      args.push(`--proxy-server=${proxyLease.url}`, '--disable-quic');
+      addLog('INFO', 'پراکسی اختصاصی ورود از طریق کانفیگ اکانت آماده شد.', 'xray_core');
+    } catch (err: any) {
+      return { success: false, error: err.message };
     }
   }
 
@@ -1279,7 +1112,8 @@ async function launchChromeForAccount(
       executable: chromeBin,
       startedAt: new Date().toISOString(),
       cookiesCaptured: false,
-      capturedCount: 0
+      capturedCount: 0,
+      proxyLease
     };
 
     // Auto-polling for login detection (runs quietly every 8s so it does not disturb user typing/clicking)
@@ -1306,13 +1140,15 @@ async function launchChromeForAccount(
     child.on('error', (err) => {
       addLog('ERROR', `خطا در اجرای فرآیند مرورگر: ${err.message}`);
       if (session.pollTimer) clearInterval(session.pollTimer);
-      activeBrowsers.delete(accountId);
+      session.proxyLease?.release();
+      if (activeBrowsers.get(accountId) === session) activeBrowsers.delete(accountId);
     });
 
     child.on('exit', (code) => {
       addLog('INFO', `مرورگر گوگل کروم برای اکانت ${acc.name} بسته شد (کد خروج: ${code}).`);
       if (session.pollTimer) clearInterval(session.pollTimer);
-      activeBrowsers.delete(accountId);
+      session.proxyLease?.release();
+      if (activeBrowsers.get(accountId) === session) activeBrowsers.delete(accountId);
     });
 
     activeBrowsers.set(accountId, session);
@@ -1327,6 +1163,7 @@ async function launchChromeForAccount(
         : 'مرورگر Google Chrome با پروفایل اختصاصی و تنظیمات ضد تشخیص اجرا شد.'
     };
   } catch (err: any) {
+    proxyLease?.release();
     addLog('ERROR', `خطا در باز کردن مرورگر کروم: ${err.message}`);
     return {
       success: false,
@@ -1654,7 +1491,7 @@ app.post('/api/tweet/now', async (req, res) => {
 
     const prx = proxies.find((p) => p.id === acc.proxy_id);
     const proxyLabel = prx ? `${prx.name} (${prx.protocol.toUpperCase()})` : 'IP مستقیم سرور';
-    const proxyUrl = prx ? `${prx.protocol.toLowerCase()}://${prx.server}:${prx.port}` : null;
+    const proxyUrl = prx ? prx.url : acc.proxy_id ? 'missing://' : null;
 
     // 1. Anti-Ban Rate Limit Check (60 min interval warning)
     if (acc.last_tweet_at) {
@@ -1774,7 +1611,7 @@ setInterval(async () => {
 
       const proxies = loadProxiesData();
       const prx = proxies.find((p) => p.id === acc.proxy_id);
-      const proxyUrl = prx ? `${prx.protocol.toLowerCase()}://${prx.server}:${prx.port}` : null;
+      const proxyUrl = prx ? prx.url : acc.proxy_id ? 'missing://' : null;
 
       addLog('INFO', `[queue] فرا رسیدن نوبت ارسال توییت زمان‌بندی‌شده برای اکانت ${acc.name}...`);
 
