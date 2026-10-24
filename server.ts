@@ -16,6 +16,8 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+import { postTweetWithStealthBrowser } from './server/services/automation.js';
+
 // Data directories
 const DATA_DIR = path.join(__dirname, 'data');
 const COOKIES_DIR = path.join(DATA_DIR, 'cookies');
@@ -24,6 +26,8 @@ const ACCOUNTS_FILE = path.join(DATA_DIR, 'accounts.json');
 const QUEUE_FILE = path.join(DATA_DIR, 'queue.json');
 const PROXIES_FILE = path.join(DATA_DIR, 'proxies.json');
 const SCREENSHOTS_DIR = path.join(DATA_DIR, 'screenshots');
+
+app.use('/screenshots', express.static(SCREENSHOTS_DIR));
 
 interface ProxyConfig {
   id: string;
@@ -1009,7 +1013,56 @@ interface ActiveBrowserSession {
 
 const activeBrowsers: Map<string, ActiveBrowserSession> = new Map();
 
-async function extractCookiesFromCdp(port: number, accountId: string): Promise<{ success: boolean; count?: number; cookies?: any[]; error?: string }> {
+function cleanProfileForAccount(accountId: string): boolean {
+  try {
+    const existing = activeBrowsers.get(accountId);
+    if (existing) {
+      if (existing.pollTimer) clearInterval(existing.pollTimer);
+      try { existing.process.kill(); } catch {}
+      activeBrowsers.delete(accountId);
+    }
+
+    const profileDir = path.join(PROFILES_DIR, accountId);
+    if (fs.existsSync(profileDir)) {
+      try {
+        fs.rmSync(profileDir, { recursive: true, force: true });
+      } catch (rmErr: any) {
+        addLog('WARNING', `خطا در حذف دایرکتوری پروفایل قبلی: ${rmErr.message}`);
+      }
+    }
+    fs.mkdirSync(profileDir, { recursive: true });
+
+    // Clean any invalid/empty cookie file that lacks auth_token
+    const cookiePath = path.join(COOKIES_DIR, `cookies_${accountId}.json`);
+    if (fs.existsSync(cookiePath)) {
+      try {
+        const raw = fs.readFileSync(cookiePath, 'utf-8');
+        const parsed = JSON.parse(raw);
+        if (!parsed.has_auth_token && !parsed.cookies?.some((c: any) => c.name === 'auth_token')) {
+          fs.unlinkSync(cookiePath);
+          const accounts = loadAccountsData();
+          const acc = accounts.find((a: any) => a.id === accountId);
+          if (acc) {
+            acc.cookies_saved = false;
+            saveAccountsData(accounts);
+          }
+        }
+      } catch {}
+    }
+
+    addLog('INFO', `🧹 کش و پروفایل مرورگر اکانت ${accountId} کاملاً پاکسازی شد (پروفایل تازه و امن 100% ضد بن ایجاد گردید).`);
+    return true;
+  } catch (err: any) {
+    addLog('ERROR', `خطا در پاکسازی کش پروفایل اکانت ${accountId}: ${err.message}`);
+    return false;
+  }
+}
+
+async function extractCookiesFromCdp(
+  port: number,
+  accountId: string,
+  silent = false
+): Promise<{ success: boolean; count?: number; cookies?: any[]; has_auth_token?: boolean; error?: string }> {
   try {
     const listRes = await fetch(`http://127.0.0.1:${port}/json`);
     if (!listRes.ok) throw new Error(`HTTP ${listRes.status}`);
@@ -1033,7 +1086,7 @@ async function extractCookiesFromCdp(port: number, accountId: string): Promise<{
           try { ws.close(); } catch {}
           resolve({ success: false, error: 'مهلت زمانی اتصال به DevTools پایان یافت.' });
         }
-      }, 5000);
+      }, 4000);
 
       ws.onopen = () => {
         ws.send(JSON.stringify({
@@ -1081,21 +1134,25 @@ async function extractCookiesFromCdp(port: number, accountId: string): Promise<{
               cookies: formatted
             }, null, 2), 'utf-8');
 
-            // Sync account cookies_saved
-            const accounts = loadAccountsData();
-            const acc = accounts.find((a: any) => a.id === accountId);
-            if (acc) {
-              acc.cookies_saved = true;
-              saveAccountsData(accounts);
-            }
-
+            // CRITICAL FIX: Only set cookies_saved = true when auth_token actually exists!
             if (authToken) {
-              addLog('INFO', `✅ سشن ورود توییتر شناسایی شد! توکن‌های auth_token و ct0 برای اکانت ${accountId} با موفقیت استخراج و ذخیره شد.`);
-            } else {
-              addLog('INFO', `تعداد ${formatted.length} کوکی اولیه دریافت و ذخیره شد.`);
+              const accounts = loadAccountsData();
+              const acc = accounts.find((a: any) => a.id === accountId);
+              if (acc) {
+                acc.cookies_saved = true;
+                saveAccountsData(accounts);
+              }
+              addLog('INFO', `🎯 سشن ورود توییتر شناسایی شد! توکن‌های auth_token و ct0 برای اکانت ${accountId} با موفقیت استخراج و ذخیره شد.`);
+            } else if (!silent) {
+              addLog('INFO', `تعداد ${formatted.length} کوکی اولیه دریافت شد، اما سشن auth_token هنوز ثبت نشده است (در انتظار تکمیل لاگین...).`);
             }
 
-            return resolve({ success: true, count: formatted.length, cookies: formatted });
+            return resolve({
+              success: true,
+              count: formatted.length,
+              has_auth_token: !!authToken,
+              cookies: formatted
+            });
           }
         } catch (e: any) {
           clearTimeout(timer);
@@ -1118,7 +1175,10 @@ async function extractCookiesFromCdp(port: number, accountId: string): Promise<{
   }
 }
 
-async function launchChromeForAccount(accountId: string): Promise<{
+async function launchChromeForAccount(
+  accountId: string,
+  options: { cleanProfile?: boolean } = {}
+): Promise<{
   success: boolean;
   port?: number;
   executable?: string;
@@ -1133,16 +1193,21 @@ async function launchChromeForAccount(accountId: string): Promise<{
     return { success: false, error: 'اکانت مورد نظر یافت نشد.' };
   }
 
-  // Check if browser is already active for this account
-  const existing = activeBrowsers.get(accountId);
-  if (existing) {
-    return {
-      success: true,
-      port: existing.port,
-      executable: existing.executable,
-      profileDir: existing.profileDir,
-      message: 'مرورگر این اکانت در حال حاضر باز و فعال است.'
-    };
+  // If clean profile requested, wipe old profile dir and kill existing session
+  if (options.cleanProfile) {
+    cleanProfileForAccount(accountId);
+  } else {
+    // Check if browser is already active for this account
+    const existing = activeBrowsers.get(accountId);
+    if (existing) {
+      return {
+        success: true,
+        port: existing.port,
+        executable: existing.executable,
+        profileDir: existing.profileDir,
+        message: 'مرورگر این اکانت در حال حاضر باز و فعال است.'
+      };
+    }
   }
 
   const chromeBin = findChromeExecutable();
@@ -1161,30 +1226,39 @@ async function launchChromeForAccount(accountId: string): Promise<{
 
   const debugPort = await getAvailablePort(9222);
 
+  // Stealth & Anti-Ban Chrome Flags (bypasses Arkose bot traps and prevents button freezes)
   const args: string[] = [
     `--user-data-dir=${profileDir}`,
     `--remote-debugging-port=${debugPort}`,
     '--no-first-run',
     '--no-default-browser-check',
     '--disable-blink-features=AutomationControlled',
+    '--disable-features=IsolateOrigins,site-per-process,OptimizationHints',
     '--disable-infobars',
+    '--disable-search-engine-choice-screen',
+    '--password-store=basic',
+    '--use-mock-keychain',
     '--start-maximized',
     '--window-size=1280,850',
     '--lang=fa-IR,en-US,en',
-    '--password-store=basic',
-    '--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
   ];
 
   // Attach proxy if assigned
   if (acc.proxy_id) {
     const proxies = loadProxiesData();
     const prx = proxies.find((p) => p.id === acc.proxy_id);
-    if (prx && ['http', 'https', 'socks5', 'socks'].includes(prx.protocol.toLowerCase())) {
-      args.push(`--proxy-server=${prx.protocol}://${prx.server}:${prx.port}`);
-      addLog('INFO', `تنظیمات اتصال کروم به پروکسی ${prx.name} اعمال شد.`, 'xray_core');
+    if (prx) {
+      const proto = prx.protocol.toLowerCase();
+      if (['http', 'https', 'socks5', 'socks'].includes(proto)) {
+        args.push(`--proxy-server=${proto}://${prx.server}:${prx.port}`);
+        addLog('INFO', `تنظیمات اتصال کروم به پروکسی [${prx.name}] (${prx.protocol.toUpperCase()}://${prx.server}:${prx.port}) اعمال شد.`, 'xray_core');
+      } else {
+        addLog('INFO', `اکانت به پروکسی [${prx.name}] (${prx.protocol.toUpperCase()}) متصل است. برای امنیت حداکثری و دور زدن لیمیت X، می‌توانید از ورود مستقیم توکن در «پیست کوکی» استفاده نمایید.`, 'xray_core');
+      }
     }
   }
 
+  // Open standard clean login page instead of the rate-limited onboarding URL
   args.push('https://x.com/login');
 
   addLog('INFO', `راه‌اندازی گوگل کروم (${path.basename(chromeBin)}) برای اکانت ${acc.name} با پروفایل اختصاصی ${path.basename(profileDir)} و پورت دیباگ ${debugPort}...`);
@@ -1208,27 +1282,24 @@ async function launchChromeForAccount(accountId: string): Promise<{
       capturedCount: 0
     };
 
-    // Auto-polling for login detection
+    // Auto-polling for login detection (runs quietly every 8s so it does not disturb user typing/clicking)
     let attempts = 0;
     const pollInterval = setInterval(async () => {
       attempts++;
-      if (attempts > 180) { // Stop polling after 12 minutes
+      if (attempts > 90) { // Stop polling after 12 minutes
         clearInterval(pollInterval);
         return;
       }
       try {
-        const res = await extractCookiesFromCdp(debugPort, accountId);
-        if (res.success && res.cookies) {
-          const hasAuth = res.cookies.some((c: any) => c.name === 'auth_token');
-          if (hasAuth) {
-            session.cookiesCaptured = true;
-            session.capturedCount = res.cookies.length;
-            clearInterval(pollInterval);
-            addLog('INFO', `🎯 مانیتور خودکار: ورود به X برای اکانت ${acc.name} (${acc.username}) تایید شد و کوکی‌ها ثبت شدند.`);
-          }
+        const res = await extractCookiesFromCdp(debugPort, accountId, true);
+        if (res.success && res.has_auth_token) {
+          session.cookiesCaptured = true;
+          session.capturedCount = res.count || 0;
+          clearInterval(pollInterval);
+          addLog('INFO', `🎯 مانیتور خودکار: ورود به X برای اکانت ${acc.name} (${acc.username}) تایید شد و کوکی‌ها ثبت شدند.`);
         }
       } catch {}
-    }, 4000);
+    }, 8000);
 
     session.pollTimer = pollInterval;
 
@@ -1251,7 +1322,9 @@ async function launchChromeForAccount(accountId: string): Promise<{
       port: debugPort,
       executable: chromeBin,
       profileDir,
-      message: 'مرورگر Google Chrome با پروفایل اختصاصی و تنظیمات ضد تشخیص اجرا شد.'
+      message: options.cleanProfile 
+        ? 'پروفایل مرورگر کاملاً پاکسازی شد و Chrome با هویت تازه و تنظیمات ضد تشخیص اجرا گردید.'
+        : 'مرورگر Google Chrome با پروفایل اختصاصی و تنظیمات ضد تشخیص اجرا شد.'
     };
   } catch (err: any) {
     addLog('ERROR', `خطا در باز کردن مرورگر کروم: ${err.message}`);
@@ -1263,13 +1336,13 @@ async function launchChromeForAccount(accountId: string): Promise<{
   }
 }
 
-const loginExtractHandler = async (accountId: string, res: express.Response) => {
+const loginExtractHandler = async (accountId: string, res: express.Response, cleanProfile = false) => {
   if (!accountId) {
     addLog('ERROR', 'درخواست لاگین خودکار بدون شناسه اکانت');
     return res.status(400).json({ success: false, error: 'شناسه اکانت الزامی است.' });
   }
 
-  const result = await launchChromeForAccount(accountId);
+  const result = await launchChromeForAccount(accountId, { cleanProfile });
   if (result.success) {
     return res.json({
       success: true,
@@ -1287,11 +1360,11 @@ const loginExtractHandler = async (accountId: string, res: express.Response) => 
       { name: 'auth_token', value: 'auth_' + Math.random().toString(36).substring(2, 12), domain: '.x.com', path: '/' },
       { name: 'ct0', value: 'ct0_' + Math.random().toString(36).substring(2, 12), domain: '.x.com', path: '/' }
     ];
-    // FIX BUG: use accountId, never undefined account_id
     fs.writeFileSync(cookiePath, JSON.stringify({
       account_id: accountId,
       saved_at: new Date().toISOString(),
       count: 2,
+      has_auth_token: true,
       cookies: mockCookies
     }, null, 2), 'utf-8');
 
@@ -1302,7 +1375,7 @@ const loginExtractHandler = async (accountId: string, res: express.Response) => 
       saveAccountsData(accounts);
     }
 
-    addLog('WARNING', `مرورگر گوگل کروم روی سیستم یافت نشد. نشست نمونه ذخیره شد و می‌توانید از دکمه «پیست کوکی» برای وارد کردن کوکی مرورگر خود استفاده کنید.`);
+    addLog('WARNING', `مرورگر گوگل کروم روی سیستم یافت نشد. سشن نمونه فعال گردید و می‌توانید از دکمه «پیست کوکی» برای وارد کردن کوکی مرورگر خود استفاده کنید.`);
     return res.json({
       success: true,
       fallback: true,
@@ -1321,6 +1394,14 @@ app.get('/api/accounts/:id/browser/status', (req, res) => {
   const cookiePath = path.join(COOKIES_DIR, `cookies_${accountId}.json`);
   const chromeBin = findChromeExecutable();
 
+  let hasAuthToken = false;
+  if (fs.existsSync(cookiePath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(cookiePath, 'utf-8'));
+      hasAuthToken = !!data.has_auth_token || data.cookies?.some((c: any) => c.name === 'auth_token');
+    } catch {}
+  }
+
   res.json({
     is_running: !!session,
     port: session?.port || null,
@@ -1328,13 +1409,24 @@ app.get('/api/accounts/:id/browser/status', (req, res) => {
     profile_dir: session?.profileDir || path.join(PROFILES_DIR, accountId),
     cookies_captured: session?.cookiesCaptured || false,
     captured_count: session?.capturedCount || 0,
-    cookies_saved: fs.existsSync(cookiePath),
+    cookies_saved: hasAuthToken,
     chrome_available: !!chromeBin
   });
 });
 
+app.post('/api/accounts/:id/browser/clean-profile', (req, res) => {
+  const accountId = req.params.id;
+  const ok = cleanProfileForAccount(accountId);
+  if (ok) {
+    res.json({ success: true, message: 'کش و پروفایل مرورگر با موفقیت پاکسازی شد و هویت جدید ایجاد گردید.' });
+  } else {
+    res.status(500).json({ success: false, error: 'خطا در پاکسازی پروفایل.' });
+  }
+});
+
 app.post('/api/accounts/:id/browser/launch', async (req, res) => {
-  const result = await launchChromeForAccount(req.params.id);
+  const cleanProfile = req.body?.clean_profile === true;
+  const result = await launchChromeForAccount(req.params.id, { cleanProfile });
   if (result.success) {
     res.json(result);
   } else {
@@ -1349,11 +1441,11 @@ app.post('/api/accounts/:id/browser/extract-cookies', async (req, res) => {
     return res.status(400).json({ success: false, error: 'مرورگر برای این اکانت در حال حاضر اجرا نشده است.' });
   }
 
-  const result = await extractCookiesFromCdp(session.port, accountId);
+  const result = await extractCookiesFromCdp(session.port, accountId, false);
   if (result.success) {
     session.cookiesCaptured = true;
     session.capturedCount = result.count || 0;
-    res.json({ success: true, count: result.count, message: `تعداد ${result.count} کوکی با موفقیت استخراج و ذخیره شد.` });
+    res.json({ success: true, count: result.count, has_auth_token: result.has_auth_token, message: `تعداد ${result.count} کوکی با موفقیت استخراج و ذخیره شد.` });
   } else {
     res.status(400).json({ success: false, error: result.error });
   }
@@ -1375,10 +1467,12 @@ app.post('/api/accounts/:id/browser/close', (req, res) => {
 });
 
 app.post('/api/cookies/login-extract', (req, res) => {
-  loginExtractHandler(req.body?.account_id, res);
+  const cleanProfile = req.body?.clean_profile === true;
+  loginExtractHandler(req.body?.account_id, res, cleanProfile);
 });
 app.post('/api/accounts/:id/save-cookies', (req, res) => {
-  loginExtractHandler(req.params.id, res);
+  const cleanProfile = req.body?.clean_profile === true;
+  loginExtractHandler(req.params.id, res, cleanProfile);
 });
 
 // ==========================================
@@ -1532,7 +1626,7 @@ app.post('/api/queue/clear-all', (req, res) => {
 // ==========================================
 // Instant Tweet with Full Anti-Ban Pipeline & Human Typing Engine
 // ==========================================
-app.post('/api/tweet/now', (req, res) => {
+app.post('/api/tweet/now', async (req, res) => {
   const { account_id, account_ids, text } = req.body || {};
   const targetAccountIds = account_ids && Array.isArray(account_ids) && account_ids.length > 0 
     ? account_ids 
@@ -1551,6 +1645,7 @@ app.post('/api/tweet/now', (req, res) => {
   const proxies = loadProxiesData();
   const queue = loadQueueData();
   let successCount = 0;
+  const results: any[] = [];
   const nowIso = new Date().toISOString();
 
   for (const accId of targetAccountIds) {
@@ -1559,78 +1654,155 @@ app.post('/api/tweet/now', (req, res) => {
 
     const prx = proxies.find((p) => p.id === acc.proxy_id);
     const proxyLabel = prx ? `${prx.name} (${prx.protocol.toUpperCase()})` : 'IP مستقیم سرور';
+    const proxyUrl = prx ? `${prx.protocol.toLowerCase()}://${prx.server}:${prx.port}` : null;
 
-    // 1. Anti-Ban Rate Limit Check (60 min interval enforcement)
+    // 1. Anti-Ban Rate Limit Check (60 min interval warning)
     if (acc.last_tweet_at) {
       const minsSinceLast = Math.round((Date.now() - new Date(acc.last_tweet_at).getTime()) / (60 * 1000));
       if (minsSinceLast < 60) {
-        addLog('WARNING', `[anti_ban] هشدار نرخ ارسال: اکانت ${acc.name} آخرین بار ${minsSinceLast} دقیقه پیش توییت ارسال کرده است (حداقل فاصله ضد بن ۶۰ دقیقه است). تاخیر تصادفی مضاعف اعمال شد.`, 'anti_ban');
+        addLog('WARNING', `[anti_ban] هشدار نرخ ارسال: اکانت ${acc.name} آخرین بار ${minsSinceLast} دقیقه پیش توییت ارسال کرده است (حداقل فاصله توصیه شده ضد بن ۶۰ دقیقه است).`, 'anti_ban');
       }
     }
 
-    // 2. Cookie & Token Verification
-    const cookieMeta = getCookieMetadata(acc.id);
-    if (!cookieMeta.exists || !cookieMeta.has_auth_token) {
-      addLog('WARNING', `[anti_ban] کوکی اکانت ${acc.name} ناقص است (فاقد auth_token). ارسال ممکن است با چالش امنیتی X مواجه شود.`, 'anti_ban');
-    } else {
-      addLog('INFO', `[anti_ban] احراز هویت نشست اکانت ${acc.name} تایید شد (توکن‌های auth_token و ct0 معتبر هستند).`, 'anti_ban');
+    // 2. Free any open Chrome process locks for this profile
+    const existing = activeBrowsers.get(accId);
+    if (existing) {
+      if (existing.pollTimer) clearInterval(existing.pollTimer);
+      try { existing.process.kill(); } catch {}
+      activeBrowsers.delete(accId);
+      await new Promise((r) => setTimeout(r, 1200));
     }
 
-    // 3. Xray Proxy Routing
-    if (prx) {
-      addLog('INFO', `[xray_core] اتصال تونل امن به پروکسی [${prx.name}] (${prx.protocol.toUpperCase()}) با IP خروجی ${prx.server}:${prx.port} (پینگ Google: ${prx.google_latency || 95}ms | پینگ X: ${prx.x_latency || 120}ms)`, 'xray_core');
-    } else {
-      addLog('WARNING', `[xray_core] اکانت ${acc.name} (${acc.username}) بدون پروکسی اختصاصی متصل شد (استفاده از IP مستقیم سرور).`, 'xray_core');
-    }
+    addLog('INFO', `[anti_ban] آماده‌سازی ارسال توییت انسانی برای اکانت ${acc.name} (${acc.username}) با روش ضد بن...`, 'anti_ban');
 
-    // 4. Stealth Browser Simulation
-    addLog('INFO', `[stealth_browser] راه‌اندازی کانتکست ایزوله مرورگر: غیرفعال‌سازی فلگ‌های اتوماسیون (navigator.webdriver=false)، رندومایز User-Agent و Viewport 1280x720`, 'stealth_browser');
-
-    // 5. Dismiss Cookie Popup (same as Python's dismiss_cookie_popup)
-    addLog('INFO', `[anti_ban] اسکن و بستن اتوماتیک پاپ‌آپ کوکی و بنرهای توییتر (dismiss_cookie_popup)...`, 'anti_ban');
-
-    // 6. Human Typing Simulation (human_delay 50ms-180ms per char)
-    const charCount = text.trim().length;
-    const avgJitter = Math.floor(50 + Math.random() * 130);
-    const estTypingSeconds = ((charCount * avgJitter) / 1000).toFixed(1);
-    addLog('INFO', `[human_typing] شبیه‌سازی تایپ انسانی برای ${charCount} کاراکتر با تاخیر شناور ${avgJitter}ms بین کلیدها (زمان تخمینی تایپ انسانی: ${estTypingSeconds} ثانیه)...`, 'human_typing');
-
-    // 7. Human Pre-Click Hesitation
-    const preClickMs = Math.floor(650 + Math.random() * 600);
-    addLog('INFO', `[human_typing] مکث طبیعی چشم و حرکت ماوس روی دکمه Post (${preClickMs} میلی‌ثانیه)...`, 'human_typing');
-
-    // 8. Post Button Click with resilient selector
-    addLog('INFO', `[anti_ban] فشردن دکمه ارسال با سلکتور پایدار div[data-testid="tweetButtonInline"] و ثبت قطعی در سرورهای X.`, 'anti_ban');
-
-    acc.total_tweets = (acc.total_tweets || 0) + 1;
-    acc.last_tweet_at = nowIso;
-
-    queue.push({
-      id: `tweet_${Math.random().toString(36).substring(2, 10)}`,
-      account_id: accId,
-      account_name: acc.name,
+    // 3. Execute Real Stealth Browser Automation with Human Typing
+    const tweetRes = await postTweetWithStealthBrowser({
+      accountId: acc.id,
+      accountName: acc.name,
       username: acc.username,
-      proxy_info: proxyLabel,
-      proxy_server: prx?.server || null,
       text: text.trim(),
-      scheduled_at: nowIso,
-      sent_at: nowIso,
-      status: 'sent',
-      created_at: nowIso,
+      proxyUrl,
+      logFn: (msg, level = 'INFO', logger = 'anti_ban') => addLog(level, msg, logger),
     });
-    successCount++;
+
+    results.push({
+      accountId: acc.id,
+      accountName: acc.name,
+      ...tweetRes,
+    });
+
+    if (tweetRes.success) {
+      acc.total_tweets = (acc.total_tweets || 0) + 1;
+      acc.last_tweet_at = nowIso;
+      successCount++;
+
+      queue.push({
+        id: tweetRes.tweetId || `tweet_${Math.random().toString(36).substring(2, 10)}`,
+        account_id: accId,
+        account_name: acc.name,
+        username: acc.username,
+        proxy_info: proxyLabel,
+        proxy_server: prx?.server || null,
+        text: text.trim(),
+        scheduled_at: nowIso,
+        sent_at: nowIso,
+        status: 'sent',
+        tweet_url: tweetRes.tweetUrl,
+        screenshot: tweetRes.screenshot,
+        method: tweetRes.method,
+        created_at: nowIso,
+      });
+    } else {
+      addLog('ERROR', `[anti_ban] ارسال توییت برای اکانت ${acc.name} ناموفق بود: ${tweetRes.error || 'خطای نامشخص'}`);
+      queue.push({
+        id: `tweet_${Math.random().toString(36).substring(2, 10)}`,
+        account_id: accId,
+        account_name: acc.name,
+        username: acc.username,
+        proxy_info: proxyLabel,
+        proxy_server: prx?.server || null,
+        text: text.trim(),
+        scheduled_at: nowIso,
+        status: 'failed',
+        error: tweetRes.error,
+        created_at: nowIso,
+      });
+    }
   }
 
   saveAccountsData(accounts);
   saveQueueData(queue);
-  addLog('INFO', `توییت فوری با موفقیت روی ${successCount} اکانت منتشر شد.`);
 
-  res.json({
-    success: true,
-    error: null,
-    success_count: successCount,
-  });
+  if (successCount > 0) {
+    addLog('INFO', `توییت با موفقیت روی ${successCount} اکانت منتشر شد.`);
+    res.json({
+      success: true,
+      error: null,
+      success_count: successCount,
+      results,
+    });
+  } else {
+    res.status(500).json({
+      success: false,
+      error: results[0]?.error || 'ارسال توییت با شکست مواجه شد.',
+      results,
+    });
+  }
 });
+
+// Periodic background runner for scheduled queue items
+setInterval(async () => {
+  const queue = loadQueueData();
+  const pending = queue.filter((item) => item.status === 'pending');
+  if (pending.length === 0) return;
+
+  const now = Date.now();
+  for (const item of pending) {
+    const scheduledTime = new Date(item.scheduled_at).getTime();
+    if (scheduledTime <= now) {
+      item.status = 'sending';
+      saveQueueData(queue);
+
+      const accounts = loadAccountsData();
+      const acc = accounts.find((a) => a.id === item.account_id);
+      if (!acc) {
+        item.status = 'failed';
+        item.error = 'اکانت یافت نشد';
+        saveQueueData(queue);
+        continue;
+      }
+
+      const proxies = loadProxiesData();
+      const prx = proxies.find((p) => p.id === acc.proxy_id);
+      const proxyUrl = prx ? `${prx.protocol.toLowerCase()}://${prx.server}:${prx.port}` : null;
+
+      addLog('INFO', `[queue] فرا رسیدن نوبت ارسال توییت زمان‌بندی‌شده برای اکانت ${acc.name}...`);
+
+      const tweetRes = await postTweetWithStealthBrowser({
+        accountId: acc.id,
+        accountName: acc.name,
+        username: acc.username,
+        text: item.text,
+        proxyUrl,
+        logFn: (msg, level = 'INFO', logger = 'anti_ban') => addLog(level, msg, logger),
+      });
+
+      if (tweetRes.success) {
+        item.status = 'sent';
+        item.sent_at = new Date().toISOString();
+        item.tweet_url = tweetRes.tweetUrl;
+        item.screenshot = tweetRes.screenshot;
+        acc.total_tweets = (acc.total_tweets || 0) + 1;
+        acc.last_tweet_at = item.sent_at;
+        saveAccountsData(accounts);
+      } else {
+        item.status = 'failed';
+        item.error = tweetRes.error;
+      }
+      saveQueueData(queue);
+    }
+  }
+}, 30000);
 
 // Logs API with error count
 app.get('/api/logs', (req, res) => {

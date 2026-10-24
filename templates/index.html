@@ -1818,22 +1818,28 @@
 
             <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:auto;">
               <div style="display:flex; gap:0.4rem;">
-                <button class="btn btn-primary btn-sm" style="flex:1;" onclick="handleBrowserLogin('${acc.id}')">
-                  🌐 لاگین مرورگر
+                <button class="btn btn-primary btn-sm" style="flex:1; background:linear-gradient(135deg, #1d9bf0, #0c7abf);" onclick="handleBrowserLogin('${acc.id}', true)" title="پاکسازی کامل کش و اجرای مرورگر با هویت کاملاً نو و ضد بن">
+                  🧹 لاگین ضد بن (Fresh)
                 </button>
-                <button class="btn btn-outline btn-sm" style="flex:1;" onclick="openCookieModal('${acc.id}', '${acc.username}')">
-                  📋 پیست کوکی
+                <button class="btn btn-outline btn-sm" style="flex:1;" onclick="handleBrowserLogin('${acc.id}', false)" title="باز کردن مرورگر بدون حذف کش قبلی">
+                  🌐 ادامه لاگین
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="handleExtractCookies('${acc.id}')" title="بررسی و دریافت خودکار کوکی از مرورگر باز">
+                  📥 ذخیره سشن
                 </button>
               </div>
               <div style="display:flex; gap:0.4rem;">
+                <button class="btn btn-outline btn-sm" style="flex:1;" onclick="openCookieModal('${acc.id}', '${acc.username}')" title="ورود فوری با auth_token و دور زدن کامل لیمیت">
+                  📋 پیست کوکی
+                </button>
                 <button class="btn btn-outline btn-sm" style="flex:1;" onclick="openEditModal('${acc.id}', '${acc.name}', '${acc.username}', '${acc.proxy_id || ''}')">
-                  ✏️ ویرایش و پروکسی
+                  ✏️ ویرایش
                 </button>
-                <button class="btn btn-outline btn-sm" style="flex:1;" onclick="testAccountCookie('${acc.id}')">
-                  🔍 تست نشست
+                <button class="btn btn-outline btn-sm" onclick="testAccountCookie('${acc.id}')" title="بررسی اعتبار نشست فعلی">
+                  🔍 تست
                 </button>
-                <button class="btn btn-danger btn-sm" onclick="handleDeleteAccount('${acc.id}', '${acc.name}')">
-                  🗑️ حذف
+                <button class="btn btn-danger btn-sm" onclick="handleDeleteAccount('${acc.id}', '${acc.name}')" title="حذف اکانت">
+                  🗑️
                 </button>
               </div>
             </div>
@@ -1931,21 +1937,66 @@
       } catch (err) { showToast('خطا در حذف اکانت', 'error'); }
     }
 
-    async function handleBrowserLogin(id) {
-      showToast('در حال باز کردن مرورگر و استخراج سشن لاگین...', 'info');
+    async function handleBrowserLogin(id, cleanProfile = false) {
+      if (cleanProfile) {
+        showToast('🧹 در حال پاکسازی کش قبلی و اجرای مرورگر با هویت کاملاً نو...', 'info');
+      } else {
+        showToast('در حال باز کردن مرورگر و اتصال به سشن...', 'info');
+      }
       try {
         const res = await fetch(`/api/accounts/${id}/save-cookies`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ clean_profile: cleanProfile })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message || 'مرورگر با موفقیت اجرا شد. پس از لاگین دکمه «ذخیره سشن» را بزنید.', 'success');
+          setTimeout(() => fetchAccounts(), 1500);
+          loadLogs();
+        } else {
+          showToast(data.message || data.error || 'خطا در اجرای مرورگر', 'error');
+        }
+      } catch (err) { showToast('خطا در اجرای لاگین', 'error'); }
+    }
+
+    async function handleExtractCookies(id) {
+      showToast('در حال استخراج و اعتبارسنجی کوکی‌های مرورگر باز...', 'info');
+      try {
+        const res = await fetch(`/api/accounts/${id}/browser/extract-cookies`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'}
         });
         const data = await res.json();
         if (data.success) {
-          showToast(data.message, 'success');
-          setTimeout(() => fetchAccounts(), 1200);
+          if (data.has_auth_token) {
+            showToast(`✅ سشن معتبر لاگین (auth_token) با موفقیت ثبت شد!`, 'success');
+          } else {
+            showToast(`تعداد ${data.count} کوکی دریافت شد. لطفاً ابتدا در صفحه باز شده لاگین نمایید و سپس مجدداً بزنید.`, 'info');
+          }
+          fetchAccounts();
+          loadLogs();
         } else {
-          showToast(data.message || 'خطا در لاگین', 'error');
+          showToast(data.error || 'خطا در ارتباط با مرورگر', 'error');
         }
-      } catch (err) { showToast('خطا در اجرای لاگین', 'error'); }
+      } catch (err) {
+        showToast('خطا در برقراری ارتباط با مرورگر', 'error');
+      }
+    }
+
+    async function handleCleanProfile(id) {
+      if (!confirm('آیا مطمئن هستید که می‌خواهید کش و داده‌های موقت این مرورگر را پاکسازی کنید؟')) return;
+      try {
+        const res = await fetch(`/api/accounts/${id}/browser/clean-profile`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message, 'success');
+          fetchAccounts();
+          loadLogs();
+        } else {
+          showToast(data.error || 'خطا در پاکسازی', 'error');
+        }
+      } catch (err) { showToast('خطا در پاکسازی کش', 'error'); }
     }
 
     let activeCookieTab = 'quick';
@@ -2159,14 +2210,32 @@
           let st = item.status === 'sent' ? '<span class="status-badge green">ارسال شد</span>' :
                    (item.status === 'pending' ? '<span class="status-badge blue">در انتظار</span>' : '<span class="status-badge red">خطا</span>');
           
+          let actionLinks = '';
+          if (item.tweet_url) {
+            actionLinks += `<a href="${item.tweet_url}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="font-size:0.75rem;padding:0.2rem 0.5rem;text-decoration:none;">🔗 مشاهده در X</a> `;
+          }
+          if (item.screenshot) {
+            actionLinks += `<a href="/screenshots/${item.screenshot}" target="_blank" class="btn btn-outline btn-sm" style="font-size:0.75rem;padding:0.2rem 0.5rem;text-decoration:none;">📸 مدرک</a> `;
+          }
+
+          let methodBadge = item.method === 'browser_human_typing' ? '<span class="status-badge purple" style="font-size:0.68rem;">👤 تایپ انسانی</span>' :
+                            (item.method === 'session_api' ? '<span class="status-badge blue" style="font-size:0.68rem;">⚡ نشست مستقیم</span>' : '');
+
           return `
             <tr>
-              <td><strong>${acc.name}</strong> <span style="font-size:0.75rem;color:var(--text-muted)">(${acc.username})</span></td>
+              <td>
+                <strong>${acc.name}</strong> <span style="font-size:0.75rem;color:var(--text-muted)">(${acc.username})</span>
+                ${methodBadge ? '<br>' + methodBadge : ''}
+              </td>
               <td><span class="status-badge purple" style="font-size:0.72rem;">${item.proxy_info || 'IP سرور'}</span></td>
-              <td style="max-width:320px;word-break:break-word;">${item.text}</td>
+              <td style="max-width:320px;word-break:break-word;">
+                ${item.text}
+                ${item.error ? `<div style="color:var(--danger);font-size:0.75rem;margin-top:4px;">⚠️ ${item.error}</div>` : ''}
+              </td>
               <td>${item.scheduled_at ? new Date(item.scheduled_at).toLocaleString('fa-IR') : 'فوری'}</td>
               <td>${st}</td>
-              <td>
+              <td style="white-space:nowrap;">
+                ${actionLinks}
                 <button class="btn btn-danger btn-sm" onclick="deleteQueueItem('${item.id}')" title="حذف از صف">
                   🗑️ حذف
                 </button>
