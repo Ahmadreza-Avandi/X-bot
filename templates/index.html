@@ -3,19 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>پنل جامع اتوماسیون ربات X (توییتر) | مدیریت اکانت، کوکی و ارسال</title>
+  <title>پنل جامع اتوماسیون ربات X (توییتر) | هسته Xray و پینگ دوگانه گوگل و X</title>
+  <meta name="description" content="Comprehensive X (Twitter) bot automation dashboard for account management, cookie handling, Xray proxy integration, and tweet scheduling.">
+  <meta property="og:title" content="X Bot Automation Panel">
+  <meta property="og:description" content="Comprehensive X (Twitter) bot automation dashboard for account management, cookie handling, and tweet scheduling.">
   <style>
     :root {
-      --bg-dark: #0f1419;
-      --card-bg: #16181c;
-      --card-border: #2f3336;
+      --bg-dark: #0b0e14;
+      --card-bg: #15181e;
+      --card-hover: #1c2027;
+      --card-border: #262b34;
       --accent-blue: #1d9bf0;
       --accent-hover: #1a8cd8;
-      --text-main: #e7e9ea;
-      --text-muted: #71767b;
-      --danger: #f4212e;
-      --success: #00ba7c;
-      --warning: #ffd400;
+      --accent-glow: rgba(29, 155, 240, 0.2);
+      --purple: #8a63d2;
+      --purple-bg: rgba(138, 99, 210, 0.15);
+      --text-main: #f0f3f6;
+      --text-muted: #8b949e;
+      --danger: #f85149;
+      --danger-bg: rgba(248, 81, 73, 0.12);
+      --success: #2ea043;
+      --success-bg: rgba(46, 160, 67, 0.12);
+      --warning: #e3b341;
+      --warning-bg: rgba(227, 179, 65, 0.12);
     }
 
     * {
@@ -34,16 +44,16 @@
     }
 
     header {
-      background-color: rgba(22, 24, 28, 0.95);
+      background-color: rgba(21, 24, 30, 0.95);
       border-bottom: 1px solid var(--card-border);
-      padding: 1rem 2rem;
+      padding: 0.9rem 1.8rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
       position: sticky;
       top: 0;
       z-index: 50;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(12px);
     }
 
     .brand {
@@ -52,21 +62,33 @@
       gap: 0.75rem;
     }
 
-    .brand svg {
-      width: 28px;
-      height: 28px;
-      fill: var(--accent-blue);
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: #000;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: #fff;
     }
 
     .brand h1 {
       font-size: 1.15rem;
-      font-weight: 700;
+      font-weight: 800;
+      letter-spacing: -0.3px;
     }
 
     .nav-tabs {
       display: flex;
       gap: 0.35rem;
-      background: #000;
+      background: #080a0e;
       padding: 0.25rem;
       border-radius: 9999px;
       border: 1px solid var(--card-border);
@@ -82,11 +104,15 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
     }
 
     .nav-btn.active {
       background-color: var(--accent-blue);
       color: #fff;
+      box-shadow: 0 2px 10px var(--accent-glow);
     }
 
     .nav-btn:hover:not(.active) {
@@ -94,12 +120,21 @@
       background-color: rgba(255, 255, 255, 0.05);
     }
 
+    .nav-badge-error {
+      background-color: var(--danger);
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 9999px;
+      font-weight: 700;
+    }
+
     main {
       flex: 1;
-      max-width: 1200px;
+      max-width: 1240px;
       width: 100%;
       margin: 0 auto;
-      padding: 1.75rem 1rem;
+      padding: 1.75rem 1.25rem;
     }
 
     .tab-content {
@@ -108,11 +143,11 @@
 
     .tab-content.active {
       display: block;
-      animation: fadeIn 0.2s ease-in-out;
+      animation: fadeIn 0.25s ease-out;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
+      from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
@@ -122,24 +157,27 @@
       border-radius: 16px;
       padding: 1.5rem;
       margin-bottom: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     }
 
     .card-title {
       font-size: 1.05rem;
       font-weight: 700;
-      margin-bottom: 1rem;
+      margin-bottom: 1.25rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
 
     .form-group {
-      margin-bottom: 1rem;
+      margin-bottom: 1.2rem;
     }
 
     label {
       display: block;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.5rem;
       font-size: 0.85rem;
       color: var(--text-muted);
       font-weight: 600;
@@ -147,22 +185,24 @@
 
     input, select, textarea {
       width: 100%;
-      background: #000;
+      background: #080a0e;
       border: 1px solid var(--card-border);
       color: var(--text-main);
       padding: 0.75rem 1rem;
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 0.92rem;
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.2s;
     }
 
     input:focus, select:focus, textarea:focus {
       border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px var(--accent-glow);
     }
 
     textarea {
       resize: vertical;
+      line-height: 1.6;
     }
 
     .btn {
@@ -177,19 +217,421 @@
       border: none;
       cursor: pointer;
       transition: all 0.2s ease;
+      user-select: none;
     }
 
-    .btn-primary { background-color: var(--accent-blue); color: #fff; }
-    .btn-primary:hover { background-color: var(--accent-hover); }
-    .btn-outline { background: transparent; border: 1px solid var(--card-border); color: var(--text-main); }
-    .btn-outline:hover { background: rgba(255, 255, 255, 0.05); }
-    .btn-danger { background-color: rgba(244, 33, 46, 0.1); color: var(--danger); border: 1px solid rgba(244, 33, 46, 0.3); }
-    .btn-danger:hover { background-color: var(--danger); color: #fff; }
-    .btn-success { background-color: rgba(0, 186, 124, 0.1); color: var(--success); border: 1px solid rgba(0, 186, 124, 0.3); }
-    .btn-success:hover { background-color: var(--success); color: #fff; }
-    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+    .btn-primary { 
+      background-color: var(--accent-blue); 
+      color: #fff; 
+      box-shadow: 0 2px 8px var(--accent-glow);
+    }
+    .btn-primary:hover { 
+      background-color: var(--accent-hover); 
+      transform: translateY(-1px);
+    }
+    .btn-purple {
+      background-color: var(--purple);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(138, 99, 210, 0.3);
+    }
+    .btn-purple:hover {
+      background-color: #7952c4;
+      transform: translateY(-1px);
+    }
+    .btn-outline { 
+      background: transparent; 
+      border: 1px solid var(--card-border); 
+      color: var(--text-main); 
+    }
+    .btn-outline:hover { 
+      background: rgba(255, 255, 255, 0.05); 
+      border-color: #3b4252;
+    }
+    .btn-outline.active {
+      background-color: rgba(29, 155, 240, 0.15);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+    .btn-danger { 
+      background-color: var(--danger-bg); 
+      color: var(--danger); 
+      border: 1px solid rgba(248, 81, 73, 0.25); 
+    }
+    .btn-danger:hover { 
+      background-color: var(--danger); 
+      color: #fff; 
+    }
+    .btn-success { 
+      background-color: var(--success-bg); 
+      color: var(--success); 
+      border: 1px solid rgba(46, 160, 67, 0.25); 
+    }
+    .btn-success:hover { 
+      background-color: var(--success); 
+      color: #fff; 
+    }
+    .btn-sm { 
+      padding: 0.4rem 0.85rem; 
+      font-size: 0.8rem; 
+    }
 
-    /* Account Grid */
+    /* Multi-Account Searchable Dropdown */
+    .account-picker-wrapper {
+      position: relative;
+      margin-bottom: 1.25rem;
+    }
+
+    .account-picker-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #080a0e;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .account-picker-trigger:hover, .account-picker-trigger.open {
+      border-color: var(--accent-blue);
+    }
+
+    .account-picker-trigger.open {
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .trigger-content {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .selected-count-badge {
+      background: var(--accent-blue);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+    }
+
+    .chevron-icon {
+      transition: transform 0.2s ease;
+      color: var(--text-muted);
+    }
+
+    .account-picker-trigger.open .chevron-icon {
+      transform: rotate(180deg);
+    }
+
+    .account-dropdown-panel {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: #11141a;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 0.85rem;
+      z-index: 100;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+      display: none;
+    }
+
+    .account-dropdown-panel.show {
+      display: block;
+      animation: fadeIn 0.15s ease-out;
+    }
+
+    .dropdown-search-box {
+      position: relative;
+      margin-bottom: 0.75rem;
+    }
+
+    .dropdown-search-box input {
+      padding-right: 2.25rem;
+      font-size: 0.85rem;
+      background: #080a0e;
+      height: 38px;
+    }
+
+    .search-icon-svg {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      fill: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .dropdown-actions-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .account-select-list {
+      max-height: 220px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .account-select-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .account-select-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--card-border);
+    }
+
+    .account-select-item.checked {
+      background: rgba(29, 155, 240, 0.08);
+      border-color: rgba(29, 155, 240, 0.3);
+    }
+
+    .account-item-left {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .account-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #232832;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    /* Selected Account Chips */
+    .selected-chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.6rem;
+    }
+
+    .account-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(29, 155, 240, 0.12);
+      border: 1px solid rgba(29, 155, 240, 0.35);
+      color: var(--text-main);
+      padding: 0.3rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .chip-remove-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0 0.1rem;
+    }
+
+    .chip-remove-btn:hover {
+      color: var(--danger);
+    }
+
+    /* Live Tweet Preview */
+    .tweet-preview-card {
+      background: #000;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin-top: 1.25rem;
+    }
+
+    .preview-header {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .preview-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #1e232d;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    .preview-author strong {
+      font-size: 0.95rem;
+      display: block;
+    }
+
+    .preview-author span {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+
+    .preview-text {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      word-break: break-word;
+      white-space: pre-wrap;
+      color: #f7f9f9;
+      min-height: 24px;
+    }
+
+    .preview-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    /* Proxies & Xray Tab */
+    .proxies-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .proxy-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.35rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: all 0.2s;
+    }
+
+    .proxy-card:hover {
+      border-color: #3b4252;
+      transform: translateY(-2px);
+    }
+
+    .proxy-card.full {
+      border-color: rgba(227, 179, 65, 0.4);
+    }
+
+    .protocol-badge {
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      text-transform: uppercase;
+      font-family: monospace;
+    }
+
+    .protocol-badge.vless { background: rgba(29, 155, 240, 0.15); color: var(--accent-blue); }
+    .protocol-badge.trojan { background: rgba(138, 99, 210, 0.2); color: #a371f7; }
+    .protocol-badge.vmess { background: rgba(46, 160, 67, 0.15); color: var(--success); }
+    .protocol-badge.custom { background: rgba(255, 255, 255, 0.1); color: var(--text-muted); }
+
+    .capacity-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .capacity-badge.available {
+      background: rgba(46, 160, 67, 0.15);
+      color: var(--success);
+    }
+
+    .capacity-badge.full {
+      background: rgba(248, 81, 73, 0.15);
+      color: var(--danger);
+    }
+
+    /* Dual Ping Badges */
+    .dual-ping-container {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .ping-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      font-family: monospace;
+      border: 1px solid var(--card-border);
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .ping-tag.google {
+      border-color: rgba(66, 133, 244, 0.3);
+      color: #8ab4f8;
+    }
+
+    .ping-tag.x {
+      border-color: rgba(29, 155, 240, 0.3);
+      color: var(--text-main);
+    }
+
+    .latency-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-family: monospace;
+    }
+
+    .latency-pill.good { color: var(--success); }
+    .latency-pill.medium { color: var(--warning); }
+    .latency-pill.bad { color: var(--danger); }
+
+    /* Accounts Tab */
+    .accounts-stats-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
     .accounts-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -204,25 +646,28 @@
       display: flex;
       flex-direction: column;
       gap: 1rem;
+      transition: transform 0.2s, border-color 0.2s;
     }
 
-    .account-card.selected {
-      border-color: var(--accent-blue);
-      box-shadow: 0 0 0 1px var(--accent-blue);
+    .account-card:hover {
+      border-color: #3b4252;
+      transform: translateY(-2px);
     }
 
     .status-badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.3rem;
+      gap: 0.35rem;
       padding: 0.25rem 0.65rem;
       border-radius: 9999px;
       font-size: 0.75rem;
       font-weight: 600;
     }
 
-    .status-badge.green { background-color: rgba(0, 186, 124, 0.15); color: var(--success); }
-    .status-badge.red { background-color: rgba(244, 33, 46, 0.15); color: var(--danger); }
+    .status-badge.green { background-color: var(--success-bg); color: var(--success); }
+    .status-badge.red { background-color: var(--danger-bg); color: var(--danger); }
+    .status-badge.blue { background-color: rgba(29, 155, 240, 0.15); color: var(--accent-blue); }
+    .status-badge.purple { background-color: var(--purple-bg); color: var(--purple); }
 
     .account-stats {
       display: grid;
@@ -236,17 +681,7 @@
 
     .account-stats div span { display: block; color: var(--text-muted); font-size: 0.75rem; }
 
-    .antiban-badge {
-      background: rgba(29, 155, 240, 0.1);
-      border: 1px solid rgba(29, 155, 240, 0.3);
-      padding: 0.6rem 0.9rem;
-      border-radius: 10px;
-      font-size: 0.8rem;
-      color: var(--accent-blue);
-      margin-top: 0.5rem;
-      line-height: 1.5;
-    }
-
+    /* Queue & Stats */
     .queue-stats-bar {
       display: flex;
       gap: 1rem;
@@ -259,13 +694,14 @@
       min-width: 140px;
       background-color: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 1rem;
       text-align: center;
     }
 
-    .stat-pill .number { font-size: 1.5rem; font-weight: 800; color: var(--accent-blue); }
+    .stat-pill .number { font-size: 1.6rem; font-weight: 800; color: var(--accent-blue); }
     .stat-pill.success .number { color: var(--success); }
+    .stat-pill.purple .number { color: var(--purple); }
     .stat-pill.danger .number { color: var(--danger); }
     .stat-pill .label { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
 
@@ -274,24 +710,26 @@
     th, td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--card-border); }
     th { color: var(--text-muted); font-weight: 600; background: rgba(0, 0, 0, 0.2); }
 
+    /* Logs console */
     .logs-box {
       background: #000;
       border: 1px solid var(--card-border);
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 1rem;
-      font-family: monospace;
-      font-size: 0.8rem;
-      height: 220px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.82rem;
+      height: 240px;
       overflow-y: auto;
       direction: ltr;
       text-align: left;
     }
 
-    .log-line { margin-bottom: 0.35rem; line-height: 1.4; }
-    .log-line.INFO { color: #a0aec0; }
-    .log-line.WARNING { color: #f6e05e; }
-    .log-line.ERROR { color: #fc8181; }
+    .log-line { margin-bottom: 0.4rem; line-height: 1.5; }
+    .log-line.INFO { color: #8b949e; }
+    .log-line.WARNING { color: #d29922; }
+    .log-line.ERROR { color: #f85149; font-weight: 600; }
 
+    /* Toast */
     .toast-container {
       position: fixed;
       bottom: 2rem;
@@ -303,11 +741,11 @@
     }
 
     .toast {
-      background-color: #242d34;
+      background-color: #1c2128;
       color: #fff;
       padding: 0.85rem 1.25rem;
       border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
       border-right: 4px solid var(--accent-blue);
       font-size: 0.9rem;
       max-width: 380px;
@@ -321,12 +759,13 @@
       to { transform: translateX(0); opacity: 1; }
     }
 
+    /* Modal */
     .modal-backdrop {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(4px);
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(5px);
       z-index: 1000;
       align-items: center;
       justify-content: center;
@@ -336,11 +775,11 @@
     .modal-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 16px;
-      max-width: 550px;
+      border-radius: 18px;
+      max-width: 540px;
       width: 100%;
-      padding: 1.5rem;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+      padding: 1.75rem;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.8);
     }
   </style>
 </head>
@@ -348,118 +787,290 @@
 
   <header>
     <div class="brand">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 23.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-      </svg>
-      <h1>پنل جامع اتوماسیون X (توییتر)</h1>
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 23.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+      </div>
+      <div>
+        <h1>پنل اتوماسیون ربات X + هسته Xray</h1>
+        <p style="font-size: 0.75rem; color: var(--text-muted);">پروکسی اختصاصی V2Ray/VLESS/Trojan با سنجش پینگ گوگل و X</p>
+      </div>
     </div>
 
     <div class="nav-tabs">
-      <button class="nav-btn active" onclick="switchTab('tweets')">ارسال توییت</button>
-      <button class="nav-btn" onclick="switchTab('accounts')">اکانت‌ها و کوکی‌ها</button>
-      <button class="nav-btn" onclick="switchTab('queue')">صف زمان‌بندی</button>
+      <button class="nav-btn active" onclick="switchTab('tweets')">
+        <span>ارسال توییت</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('accounts')">
+        <span>اکانت‌ها و کوکی‌ها</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('proxies')">
+        <span>🛡️ پروکسی‌ها و Xray</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('queue')">
+        <span>صف و لاگ‌ها</span>
+        <span id="nav-error-badge" class="nav-badge-error" style="display:none;">۰</span>
+      </button>
     </div>
   </header>
 
   <main>
-    <!-- تب ۱: ارسال توییت (تکی یا گروهی با انتخاب کامل اکانت) -->
+    <!-- تب ۱: ارسال توییت -->
     <div id="tab-tweets" class="tab-content active">
       <div class="card">
         <div class="card-title">
-          <span>ارسال و زمان‌بندی توییت</span>
-          <div style="display: flex; gap: 0.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>ارسال و زمان‌بندی مولتی‌توییت</span>
+            <span class="status-badge blue">پشتیبانی چنداکانتی</span>
+            <span class="status-badge purple">مسیریابی Xray فعال</span>
+          </div>
+          <div style="display: flex; gap: 0.4rem;">
             <button class="btn btn-outline btn-sm active" id="btn-mode-single" onclick="setTweetMode('single')">توییت تکی</button>
             <button class="btn btn-outline btn-sm" id="btn-mode-batch" onclick="setTweetMode('batch')">ارسال گروهی (چند سطری)</button>
           </div>
         </div>
 
-        <!-- انتخاب اکانت ارسال‌کننده -->
-        <div class="form-group">
-          <label for="tweet-account-select">اکانت ارسال‌کننده این توییت:</label>
-          <select id="tweet-account-select" onchange="onAccountSelectChange()" required>
-            <option value="">-- انتخاب اکانت --</option>
-          </select>
-          <div id="selected-acc-badge" style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);"></div>
+        <!-- انتخاب اکانت بازشونده با جستجو و چک‌باکس -->
+        <div class="account-picker-wrapper">
+          <label>انتخاب اکانت‌های ارسال‌کننده (ارسال همزمان با پروکسی‌های اختصاصی):</label>
+          <div id="picker-trigger" class="account-picker-trigger" onclick="toggleAccountDropdown()">
+            <div class="trigger-content">
+              <span id="trigger-label" style="font-size: 0.9rem; color: var(--text-muted);">برای انتخاب اکانت‌ها کلیک کنید...</span>
+              <span id="selected-count-badge" class="selected-count-badge" style="display:none;">۰ انتخاب شده</span>
+            </div>
+            <div class="chevron-icon">▼</div>
+          </div>
+
+          <!-- پنل کشویی بازشونده -->
+          <div id="account-dropdown-panel" class="account-dropdown-panel">
+            <div class="dropdown-search-box">
+              <svg class="search-icon-svg" viewBox="0 0 24 24"><path d="M10 2a8 8 0 105.293 14.707l5 5a1 1 0 001.414-1.414l-5-5A8 8 0 0010 2zm-6 8a6 6 0 1112 0 6 6 0 01-12 0z"/></svg>
+              <input type="text" id="account-search-input" placeholder="جستجوی نام یا @یوزرنیم اکانت..." oninput="filterDropdownAccounts()">
+            </div>
+            <div class="dropdown-actions-bar">
+              <span style="font-size: 0.78rem; color: var(--text-muted);" id="dropdown-accounts-count">۰ اکانت موجود</span>
+              <div style="display: flex; gap: 0.4rem;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="selectAllAccounts(true)">انتخاب همه (+)</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="selectAllAccounts(false)">لغو همه</button>
+              </div>
+            </div>
+            <div id="account-select-list" class="account-select-list">
+              <!-- آیتم‌های اکانت به صورت پویا ساخته می‌شوند -->
+            </div>
+          </div>
+
+          <!-- تگ‌های اکانت‌های انتخاب شده -->
+          <div id="selected-chips-container" class="selected-chips-container"></div>
         </div>
 
         <!-- کادر توییت تکی -->
         <div id="single-tweet-section">
           <div class="form-group">
             <label for="tweet-content">متن توییت (حداکثر ۲۸۰ کاراکتر):</label>
-            <textarea id="tweet-content" rows="4" placeholder="متن توییت خود را بنویسید..." maxlength="280" oninput="updateCharCount()"></textarea>
-            <div id="char-count" style="text-align: left; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">۰ / ۲۸۰</div>
+            <textarea id="tweet-content" rows="4" placeholder="متن توییت خود را اینجا تایپ کنید..." maxlength="280" oninput="onTweetTextChange()"></textarea>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.35rem;">
+              <span style="font-size:0.78rem; color:var(--text-muted);">پشتیبانی از منشن، هشتگ و لینک</span>
+              <div id="char-count" style="font-size: 0.82rem; font-weight:700; color: var(--text-muted);">۰ / ۲۸۰</div>
+            </div>
           </div>
 
           <div class="form-group">
-            <label for="tweet-schedule-time">زمان ارسال زمان‌بندی (اختیاری - خالی بگذارید برای ارسال فوری):</label>
+            <label for="tweet-schedule-time">زمان‌بندی ارسال (اختیاری - خالی بگذارید برای ارسال فوری):</label>
             <input type="datetime-local" id="tweet-schedule-time">
+          </div>
+
+          <!-- پیش‌نمایش زنده در توییتر -->
+          <div class="tweet-preview-card">
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.6rem; font-weight: 600;">
+              👁️ پیش‌نمایش نحوه نمایش در X:
+            </div>
+            <div class="preview-header">
+              <div id="preview-avatar" class="preview-avatar">X</div>
+              <div class="preview-author">
+                <strong id="preview-name">نام اکانت</strong>
+                <span id="preview-handle">@username</span>
+              </div>
+            </div>
+            <div id="preview-text" class="preview-text">متن توییت شما اینجا نمایش داده می‌شود...</div>
+            <div class="preview-actions">
+              <span>💬 ۰</span>
+              <span>🔁 ۰</span>
+              <span>❤️ ۰</span>
+              <span>📊 ۰</span>
+            </div>
           </div>
         </div>
 
         <!-- کادر ارسال گروهی -->
         <div id="batch-tweet-section" style="display: none;">
           <div class="form-group">
-            <label for="batch-content">توییت‌های گروهی (هر توییت در یک سطر جداگانه):</label>
+            <label for="batch-content">توییت‌های گروهی (هر سطر یک توییت مجزا - ارسال موازی با اکانت‌های انتخاب شده):</label>
             <textarea id="batch-content" rows="6" placeholder="توییت اول&#10;توییت دوم&#10;توییت سوم..."></textarea>
           </div>
           <div class="form-group">
-            <label for="batch-interval">فاصله بین توییت‌ها (حداقل ۶۰ دقیقه ضد بن):</label>
-            <input type="number" id="batch-interval" value="60" min="60" max="720">
+            <label for="batch-interval">فاصله زمانی میان هر توییت (دقیقه - حداقل ۶۰ دقیقه پیشنهاد ضد بن):</label>
+            <input type="number" id="batch-interval" value="60" min="5" max="720">
           </div>
         </div>
 
-        <div class="antiban-badge">
-          🛡️ <strong>سیستم ضد بن فعال:</strong> بستن اتوماتیک پاپ‌آپ کوکی • دکمه Post با سلکتور .last • تاخیر شبه‌انسانی ۵۰-۱۸۰ms • حداقل ۱ ساعت فاصله
+        <div class="antiban-badge" style="margin-top: 1.25rem;">
+          🛡️ <strong>سیستم ضد بن و امنیت شبکه:</strong> ارسال هر اکانت از IP پروکسی متصل (VLESS / Trojan) با پینگ مجزا به گوگل و سرورهای X • جداسازی سشن‌ها • تاخیر تصادفی انسانی
         </div>
 
         <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap;">
-          <button type="button" class="btn btn-primary" onclick="handleSendTweetAction('now')">🚀 ارسال فوری (همین حالا)</button>
-          <button type="button" class="btn btn-outline" onclick="handleSendTweetAction('queue')">🕒 افزودن به صف زمان‌بندی</button>
+          <button type="button" class="btn btn-primary" id="btn-submit-now" onclick="handleSendTweetAction('now')">
+            🚀 ارسال فوری مولتی‌توییت
+          </button>
+          <button type="button" class="btn btn-outline" id="btn-submit-queue" onclick="handleSendTweetAction('queue')">
+            🕒 افزودن به صف زمان‌بندی
+          </button>
         </div>
       </div>
 
       <!-- آخرین توییت‌ها -->
       <div class="card">
-        <div class="card-title">آخرین توییت‌های ارسال شده یا در صف</div>
+        <div class="card-title">
+          <span>آخرین توییت‌های ارسال شده یا در صف</span>
+          <button class="btn btn-outline btn-sm" onclick="fetchQueue()">🔄 به‌روزرسانی جدول</button>
+        </div>
         <div class="table-container">
           <table>
             <thead>
               <tr>
                 <th>اکانت</th>
+                <th>پروکسی (IP)</th>
                 <th>متن توییت</th>
                 <th>وضعیت</th>
                 <th>زمان</th>
               </tr>
             </thead>
             <tbody id="recent-tweets-table">
-              <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">داده‌ای وجود ندارد.</td></tr>
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">داده‌ای وجود ندارد.</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- تب ۲: اکانت‌ها و مدیریت کوکی -->
+    <!-- تب ۲: مدیریت اکانت‌ها و کوکی‌ها -->
     <div id="tab-accounts" class="tab-content">
+      <!-- خلاصه وضعیت -->
+      <div class="accounts-stats-summary">
+        <div class="stat-pill">
+          <div class="number" id="sum-total-accounts">۰</div>
+          <div class="label">تعداد کل اکانت‌ها</div>
+        </div>
+        <div class="stat-pill success">
+          <div class="number" id="sum-ready-cookies">۰</div>
+          <div class="label">دارای کوکی معتبر</div>
+        </div>
+        <div class="stat-pill purple">
+          <div class="number" id="sum-proxied-accounts">۰</div>
+          <div class="label">متصل به پروکسی Xray</div>
+        </div>
+        <div class="stat-pill">
+          <div class="number" id="sum-total-sent">۰</div>
+          <div class="label">مجموع توییت‌های ارسالی</div>
+        </div>
+      </div>
+
       <!-- افزودن اکانت -->
       <div class="card">
-        <div class="card-title">افزودن اکانت جدید</div>
-        <form onsubmit="handleAddAccount(event)" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div class="card-title">افزودن اکانت توییتر جدید</div>
+        <form onsubmit="handleAddAccount(event)" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 200px;">
-            <input type="text" id="acc-name" placeholder="نام اکانت (مثلاً: اکانت اخبار هوش مصنوعی)" required>
+            <input type="text" id="acc-name" placeholder="عنوان اکانت (مثلاً: اکانت اخبار فناوری)" required>
           </div>
           <div style="flex: 1; min-width: 200px;">
             <input type="text" id="acc-username" placeholder="@username" required>
           </div>
-          <button type="submit" class="btn btn-primary">ثبت اکانت جدید</button>
+          <div style="flex: 1; min-width: 220px;">
+            <select id="acc-proxy-select">
+              <option value="">-- بدون پروکسی (IP سرور) --</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">➕ ثبت اکانت جدید</button>
         </form>
       </div>
 
-      <div class="card-title" style="margin-bottom: 1rem;">اکانت‌های متصل و وضعیت کوکی سشن</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+        <div class="card-title" style="margin:0;">فهرست اکانت‌های متصل</div>
+        <div style="max-width: 260px; width: 100%;">
+          <input type="text" id="accounts-filter-input" placeholder="🔍 فیلتر اکانت‌ها..." oninput="renderAccounts()" style="height:36px; font-size:0.85rem;">
+        </div>
+      </div>
       <div id="accounts-list" class="accounts-grid"></div>
     </div>
 
-    <!-- تب ۳: صف زمان‌بندی -->
+    <!-- تب ۳: مدیریت پروکسی و هسته Xray با پینگ گوگل و X -->
+    <div id="tab-proxies" class="tab-content">
+      <!-- خلاصه وضعیت پروکسی‌ها -->
+      <div class="accounts-stats-summary">
+        <div class="stat-pill">
+          <div class="number" id="proxy-stat-total">۰</div>
+          <div class="label">تعداد کانفیگ‌های Xray</div>
+        </div>
+        <div class="stat-pill success">
+          <div class="number" id="proxy-stat-active">۰</div>
+          <div class="label">آنلاین و فعال</div>
+        </div>
+        <div class="stat-pill purple">
+          <div class="number" id="proxy-stat-capacity">۰ / ۰</div>
+          <div class="label">ظرفیت استفاده‌شده (حداکثر ۳ اکانت/پروکسی)</div>
+        </div>
+        <div class="stat-pill">
+          <div class="number" id="proxy-stat-avg-ping">---</div>
+          <div class="label">میانگین پینگ X و گوگل (ms)</div>
+        </div>
+      </div>
+
+      <!-- افزودن کانفیگ Xray -->
+      <div class="card">
+        <div class="card-title">
+          <span>افزودن کانفیگ پروکسی V2Ray / Xray</span>
+          <span style="font-size:0.8rem; color:var(--text-muted);">پشتیبانی از پروتکل‌های VLESS, Trojan, VMess, Shadowsocks</span>
+        </div>
+        <form onsubmit="handleAddProxy(event)">
+          <div class="form-group">
+            <label for="proxy-input-urls">لینک کانفیگ (می‌توانید یک یا چند کانفیگ را در خطوط جداگانه وارد کنید):</label>
+            <textarea id="proxy-input-urls" rows="3" placeholder="vless://b8d3a774...&#10;trojan://password@ams.server.com:443#Amsterdam&#10;vmess://..." required></textarea>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+            <p style="font-size:0.8rem; color:var(--text-muted); margin:0;">
+              💡 <strong>قانون ظرفیت:</strong> هر پروکسی حداکثر به ۳ اکانت وصل می‌شود و پینگ به صورت جداگانه هم برای سرورهای <strong>Google</strong> و هم برای <strong>X</strong> سنجیده می‌شود.
+            </p>
+            <button type="submit" class="btn btn-purple">
+              🛡️ افزودن و فعال‌سازی در هسته Xray
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- لیست پروکسی‌های فعال با دکمه‌های حذف و تست پینگ دوگانه -->
+      <div class="card">
+        <div class="card-title">
+          <div style="display:flex; align-items:center; gap:0.6rem;">
+            <span>فهرست پروکسی‌های ثبت‌شده (سنجش پینگ Google و X)</span>
+            <span id="proxies-count-badge" class="status-badge purple">۰ پروکسی</span>
+          </div>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" onclick="testAllProxies()">
+              ⚡ تست پینگ تمام پروکسی‌ها (Google + X)
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="handleClearAllProxies()">
+              🗑️ پاکسازی تمام پروکسی‌ها
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="fetchProxies()">
+              🔄 بروزرسانی
+            </button>
+          </div>
+        </div>
+        <div id="proxies-list" class="proxies-grid"></div>
+      </div>
+    </div>
+
+    <!-- تب ۴: صف زمان‌بندی و لاگ‌ها -->
     <div id="tab-queue" class="tab-content">
       <div class="queue-stats-bar">
         <div class="stat-pill"><div id="stat-pending" class="number">۰</div><div class="label">در صف انتظار</div></div>
@@ -470,13 +1081,17 @@
       <div class="card">
         <div class="card-title">
           <span>فهرست کامل صف زمان‌بندی</span>
-          <button class="btn btn-outline btn-sm" onclick="handleClearSent()">🧹 پاکسازی موارد ارسال‌شده و خطاها</button>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" onclick="handleClearSent()">🧹 پاکسازی موارد ارسال‌شده</button>
+            <button class="btn btn-danger btn-sm" onclick="handleClearAllQueue()">🗑️ پاکسازی کامل صف</button>
+          </div>
         </div>
         <div class="table-container">
           <table>
             <thead>
               <tr>
                 <th>اکانت</th>
+                <th>پروکسی Xray</th>
                 <th>متن توییت</th>
                 <th>زمان برنامه‌ریزی</th>
                 <th>وضعیت</th>
@@ -484,37 +1099,139 @@
               </tr>
             </thead>
             <tbody id="queue-table-body">
-              <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">صف خالی است.</td></tr>
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">صف خالی است.</td></tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- لاگ‌ها -->
+      <!-- کنسول لاگ‌ها -->
       <div class="card">
-        <div class="card-title">کنسول لاگ‌های زنده ربات</div>
+        <div class="card-title">
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <span>کنسول لاگ‌های زنده ربات و Xray</span>
+            <span id="error-counter-badge" class="status-badge red" style="font-size:0.82rem;">۰ خطا ثبت شده</span>
+          </div>
+          <div style="display: flex; gap: 0.4rem;">
+            <button class="btn btn-danger btn-sm" onclick="clearLogs()">🗑️ پاکسازی لاگ‌ها</button>
+            <button class="btn btn-outline btn-sm" onclick="loadLogs()">🔄 بروزرسانی</button>
+          </div>
+        </div>
         <div id="logs-container" class="logs-box"></div>
       </div>
     </div>
   </main>
 
-  <!-- مودال وارد کردن مستقیم کوکی -->
-  <div id="cookie-modal" class="modal-backdrop">
+  <!-- مودال ویرایش اکانت و تغییر پروکسی -->
+  <div id="edit-account-modal" class="modal-backdrop">
     <div class="modal-card">
       <div class="card-title">
-        <span id="modal-title">وارد کردن کوکی سشن</span>
-        <button onclick="closeCookieModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">✕</button>
+        <span>✏️ ویرایش مشخصات اکانت و پروکسی</span>
+        <button onclick="closeEditModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.3rem;cursor:pointer;">✕</button>
       </div>
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-        می‌توانید JSON خروجی افزونه‌های مرورگر (مانند EditThisCookie یا Cookie-Editor) را پیست کنید، یا توکن <code>auth_token</code> و <code>ct0</code> را وارد کنید:
-      </p>
-      <input type="hidden" id="modal-account-id">
+      <input type="hidden" id="edit-account-id">
       <div class="form-group">
-        <textarea id="modal-cookie-text" rows="7" placeholder='[&#10;  {"name": "auth_token", "value": "..."},&#10;  {"name": "ct0", "value": "..."}&#10;]'></textarea>
+        <label for="edit-acc-name">نام و عنوان اکانت:</label>
+        <input type="text" id="edit-acc-name" required>
       </div>
-      <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+      <div class="form-group">
+        <label for="edit-acc-username">نام کاربری (@username):</label>
+        <input type="text" id="edit-acc-username" required>
+      </div>
+      <div class="form-group">
+        <label for="edit-acc-proxy">پروکسی اختصاصی Xray (حداکثر ۳ اکانت به ازای هر پروکسی):</label>
+        <select id="edit-acc-proxy">
+          <option value="">-- بدون پروکسی (IP پیش‌فرض سرور) --</option>
+        </select>
+      </div>
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-outline" onclick="closeEditModal()">انصراف</button>
+        <button type="button" class="btn btn-primary" onclick="submitEditAccount()">ذخیره تغییرات</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال اتصال پروکسی به اکانت -->
+  <div id="assign-proxy-modal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="card-title">
+        <span>🔗 اتصال اکانت به پروکسی</span>
+        <button onclick="closeAssignProxyModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.3rem;cursor:pointer;">✕</button>
+      </div>
+      <input type="hidden" id="assign-modal-proxy-id">
+      <p id="assign-modal-proxy-name" style="font-size:0.9rem; font-weight:700; margin-bottom:1rem; color:var(--accent-blue);"></p>
+      <div class="form-group">
+        <label for="assign-modal-account-select">انتخاب اکانت:</label>
+        <select id="assign-modal-account-select">
+          <option value="">-- انتخاب اکانت برای اتصال --</option>
+        </select>
+      </div>
+      <p style="font-size:0.78rem; color:var(--text-muted);">
+        ⚠️ هر پروکسی حداکثر مجاز به سرویس‌دهی به ۳ اکانت است.
+      </p>
+      <div style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:1.5rem;">
+        <button type="button" class="btn btn-outline" onclick="closeAssignProxyModal()">انصراف</button>
+        <button type="button" class="btn btn-purple" onclick="submitAssignProxy()">اتصال اکانت</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال وارد کردن مستقیم کوکی -->
+  <!-- مودال وارد کردن مستقیم کوکی -->
+  <div id="cookie-modal" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="card-title">
+        <span id="modal-title">🔑 وارد کردن کوکی نشست (حل خطای لاگین X)</span>
+        <button onclick="closeCookieModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.3rem;cursor:pointer;">✕</button>
+      </div>
+
+      <!-- هشدار و راهنمای خطای We've temporarily limited your login -->
+      <div style="background: rgba(255, 170, 0, 0.08); border: 1px solid rgba(255, 170, 0, 0.25); border-radius: 12px; padding: 0.9rem; margin-bottom: 1.2rem; font-size: 0.84rem; line-height: 1.6; color: #ffd400;">
+        <strong>⚠️ چرا خطای "Temporarily limited your login" رخ می‌دهد؟</strong><br>
+        سایت X ورود مستقیم با یوزرنیم و پسورد از مرورگرهای اتوماتیک یا آی‌پی‌های مشکوک را لیمیت می‌کند. <strong>راه‌حل استاندارد ربات‌ها:</strong> کافیست فقط توکن <code>auth_token</code> مرورگرتان را کپی و اینجا وارد کنید تا اکانت فوراً بدون نیاز به پسورد و کپچا فعال شود.
+      </div>
+
+      <!-- تب‌های حالت ورود کوکی -->
+      <div style="display:flex; gap:0.5rem; margin-bottom:1rem; border-bottom:1px solid var(--card-border); padding-bottom:0.6rem;">
+        <button type="button" id="cookie-tab-quick" class="btn btn-sm btn-primary" onclick="setCookieModalTab('quick')">⚡ روش سریع (فقط auth_token)</button>
+        <button type="button" id="cookie-tab-full" class="btn btn-sm btn-outline" onclick="setCookieModalTab('full')">📋 پیست کامل JSON / Cookie-Editor</button>
+        <button type="button" class="btn btn-sm btn-outline" style="margin-right:auto; color:var(--accent-blue);" onclick="toggleCookieHelp()">❓ راهنمای استخراج</button>
+      </div>
+
+      <!-- باکس راهنمای گام به گام استخراج -->
+      <div id="cookie-help-box" style="display:none; background:#000; border:1px dashed var(--card-border); border-radius:10px; padding:0.9rem; margin-bottom:1rem; font-size:0.82rem; color:var(--text-main); line-height:1.7;">
+        <strong>آموزش ۳ مرحله‌ای دریافت توکن auth_token:</strong><br>
+        ۱. در مرورگر خود (کروم یا فایرفاکس) وارد <a href="https://x.com" target="_blank" style="color:var(--accent-blue);">x.com</a> شوید.<br>
+        ۲. کلید <strong>F12</strong> کیبورد را بزنید ➔ به تب <strong>Application</strong> (در فایرفاکس <strong>Storage</strong>) بروید ➔ در منوی سمت چپ گزینه <strong>Cookies</strong> و سپس <code>https://x.com</code> را انتخاب کنید.<br>
+        ۳. در جدول، ردیف <code>auth_token</code> را پیدا کرده و مقدار ستون <strong>Value</strong> آن را کپی کنید و در کادر زیر قرار دهید.<br>
+        <em>💡 یا افزونه رایگان <strong>Cookie-Editor</strong> را روی کروم نصب کنید و در x.com دکمه Export ➔ JSON را بزنید.</em>
+      </div>
+
+      <input type="hidden" id="modal-account-id">
+
+      <!-- بخش روش سریع -->
+      <div id="cookie-view-quick">
+        <div class="form-group">
+          <label>توکن auth_token (کد ۴۰ کاراکتری):</label>
+          <input type="text" id="modal-cookie-authtoken" placeholder="مثال: c918e7b30f81a7429108b9e6e409...">
+        </div>
+        <div class="form-group">
+          <label>توکن ct0 (اختیاری):</label>
+          <input type="text" id="modal-cookie-ct0" placeholder="در صورت خالی بودن، به طور خودکار تنظیم می‌شود">
+        </div>
+      </div>
+
+      <!-- بخش پیست کامل JSON -->
+      <div id="cookie-view-full" style="display:none;">
+        <div class="form-group">
+          <label>متن کامل JSON افزونه یا رشته Header کوکی:</label>
+          <textarea id="modal-cookie-text" rows="6" placeholder='[&#10;  {"name": "auth_token", "value": "..."},&#10;  {"name": "ct0", "value": "..."}&#10;]'></textarea>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
         <button class="btn btn-outline" onclick="closeCookieModal()">انصراف</button>
-        <button class="btn btn-primary" onclick="submitDirectCookie()">ذخیره کوکی</button>
+        <button class="btn btn-primary" onclick="submitDirectCookie()">💾 ذخیره و فعال‌سازی نشست</button>
       </div>
     </div>
   </div>
@@ -523,16 +1240,30 @@
 
   <script>
     let accountsData = [];
+    let proxiesData = [];
     let queueData = [];
+    let selectedAccountIds = new Set();
     let tweetMode = 'single';
 
+    // Tabs switching
     function switchTab(tabName) {
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      event.target.classList.add('active');
+      
+      const buttons = document.querySelectorAll('.nav-btn');
+      if (tabName === 'tweets') buttons[0].classList.add('active');
+      else if (tabName === 'accounts') buttons[1].classList.add('active');
+      else if (tabName === 'proxies') {
+        buttons[2].classList.add('active');
+        fetchProxies();
+      }
+      else if (tabName === 'queue') {
+        buttons[3].classList.add('active');
+        loadLogs();
+      }
+
       const target = document.getElementById(`tab-${tabName}`);
       if (target) target.classList.add('active');
-      if (tabName === 'queue') loadLogs();
     }
 
     function setTweetMode(mode) {
@@ -552,66 +1283,557 @@
       setTimeout(() => toast.remove(), 4500);
     }
 
-    function updateCharCount() {
-      const val = document.getElementById('tweet-content').value;
-      const el = document.getElementById('char-count');
-      el.textContent = `${val.length} / ۲۸۰`;
-      el.style.color = val.length > 260 ? 'var(--danger)' : (val.length > 230 ? 'var(--warning)' : 'var(--text-muted)');
+    // Account Dropdown Logic
+    function toggleAccountDropdown() {
+      const panel = document.getElementById('account-dropdown-panel');
+      const trigger = document.getElementById('picker-trigger');
+      const isOpen = panel.classList.contains('show');
+      if (isOpen) {
+        panel.classList.remove('show');
+        trigger.classList.remove('open');
+      } else {
+        panel.classList.add('show');
+        trigger.classList.add('open');
+        document.getElementById('account-search-input').focus();
+      }
     }
 
+    document.addEventListener('click', (e) => {
+      const wrapper = document.querySelector('.account-picker-wrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        document.getElementById('account-dropdown-panel').classList.remove('show');
+        document.getElementById('picker-trigger').classList.remove('open');
+      }
+    });
+
+    function filterDropdownAccounts() {
+      const query = (document.getElementById('account-search-input').value || '').toLowerCase().trim();
+      renderDropdownItems(query);
+    }
+
+    function renderDropdownItems(query = '') {
+      const listEl = document.getElementById('account-select-list');
+      const filtered = accountsData.filter(a => 
+        a.name.toLowerCase().includes(query) || a.username.toLowerCase().includes(query)
+      );
+
+      document.getElementById('dropdown-accounts-count').textContent = `${filtered.length} اکانت`;
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem; text-align:center;">اکانتی یافت نشد.</div>';
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(a => {
+        const isChecked = selectedAccountIds.has(a.id);
+        const cookieBadge = a.cookies_saved
+          ? '<span style="color:var(--success); font-size:0.75rem;">● کوکی آماده</span>'
+          : '<span style="color:var(--danger); font-size:0.75rem;">● بدون کوکی</span>';
+
+        let proxyBadge = '<span style="font-size:0.7rem; color:var(--text-muted);">بدون پروکسی</span>';
+        if (a.proxy) {
+          const pLat = a.proxy.x_latency ? `(${a.proxy.x_latency}ms)` : '';
+          proxyBadge = `<span class="protocol-badge ${a.proxy.protocol}" style="font-size:0.7rem;">🛡️ ${a.proxy.name.substring(0, 14)} ${pLat}</span>`;
+        }
+
+        return `
+          <div class="account-select-item ${isChecked ? 'checked' : ''}" onclick="toggleAccountSelection('${a.id}')">
+            <div class="account-item-left">
+              <input type="checkbox" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleAccountSelection('${a.id}')">
+              <div class="account-avatar">${a.name.charAt(0) || 'X'}</div>
+              <div>
+                <strong style="font-size:0.88rem; display:block;">${a.name}</strong>
+                <span style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;" dir="ltr">${a.username}</span>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              ${proxyBadge}
+              ${cookieBadge}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleAccountSelection(accId) {
+      if (selectedAccountIds.has(accId)) {
+        selectedAccountIds.delete(accId);
+      } else {
+        selectedAccountIds.add(accId);
+      }
+      updateAccountSelectionUI();
+      filterDropdownAccounts();
+    }
+
+    function selectAllAccounts(select) {
+      if (select) {
+        accountsData.forEach(a => selectedAccountIds.add(a.id));
+      } else {
+        selectedAccountIds.clear();
+      }
+      updateAccountSelectionUI();
+      filterDropdownAccounts();
+    }
+
+    function removeAccountChip(accId) {
+      selectedAccountIds.delete(accId);
+      updateAccountSelectionUI();
+      filterDropdownAccounts();
+    }
+
+    function updateAccountSelectionUI() {
+      const count = selectedAccountIds.size;
+      const countBadge = document.getElementById('selected-count-badge');
+      const triggerLabel = document.getElementById('trigger-label');
+      const chipsContainer = document.getElementById('selected-chips-container');
+      const submitBtn = document.getElementById('btn-submit-now');
+
+      if (count === 0) {
+        countBadge.style.display = 'none';
+        triggerLabel.textContent = 'برای انتخاب اکانت‌ها کلیک کنید...';
+        triggerLabel.style.color = 'var(--text-muted)';
+        chipsContainer.innerHTML = '';
+        submitBtn.textContent = '🚀 ارسال فوری (اکانتی انتخاب نشده)';
+      } else {
+        countBadge.style.display = 'inline-block';
+        countBadge.textContent = `${count} اکانت انتخاب شده`;
+        triggerLabel.textContent = `${count} اکانت آماده ارسال همزمان با پروکسی`;
+        triggerLabel.style.color = 'var(--text-main)';
+        submitBtn.textContent = `🚀 ارسال فوری مولتی‌توییت (${count} اکانت)`;
+
+        const selectedAccounts = accountsData.filter(a => selectedAccountIds.has(a.id));
+        chipsContainer.innerHTML = selectedAccounts.map(a => `
+          <div class="account-chip">
+            <span>${a.name}</span>
+            <span style="font-size:0.72rem; color:var(--text-muted);" dir="ltr">${a.username}</span>
+            ${a.proxy ? `<span class="protocol-badge ${a.proxy.protocol}" style="font-size:0.65rem; padding:0.1rem 0.35rem;">${a.proxy.protocol.toUpperCase()}</span>` : ''}
+            <button type="button" class="chip-remove-btn" onclick="removeAccountChip('${a.id}')" title="حذف">✕</button>
+          </div>
+        `).join('');
+
+        if (selectedAccounts.length > 0) {
+          const first = selectedAccounts[0];
+          document.getElementById('preview-avatar').textContent = first.name.charAt(0) || 'X';
+          document.getElementById('preview-name').textContent = first.name;
+          document.getElementById('preview-handle').textContent = `${first.username} ${count > 1 ? `(+${count - 1} اکانت دیگر)` : ''}`;
+        }
+      }
+    }
+
+    function onTweetTextChange() {
+      const text = document.getElementById('tweet-content').value;
+      const charCountEl = document.getElementById('char-count');
+      const previewTextEl = document.getElementById('preview-text');
+
+      charCountEl.textContent = `${text.length} / ۲۸۰`;
+      charCountEl.style.color = text.length > 260 ? 'var(--danger)' : (text.length > 220 ? 'var(--warning)' : 'var(--text-muted)');
+      previewTextEl.textContent = text.trim() ? text : 'متن توییت شما اینجا نمایش داده می‌شود...';
+    }
+
+    // ==========================================
+    // Fetch Accounts & Proxies
+    // ==========================================
     async function fetchAccounts() {
       try {
         const res = await fetch('/api/accounts');
         accountsData = await res.json();
+        
+        if (selectedAccountIds.size === 0 && accountsData.length > 0) {
+          selectedAccountIds.add(accountsData[0].id);
+        }
+
         renderAccounts();
-        updateAccountDropdown();
+        renderDropdownItems();
+        updateAccountSelectionUI();
+        updateAccountsStats();
+        updateProxyDropdowns();
       } catch (err) {
         console.error(err);
       }
     }
 
-    function renderAccounts() {
-      const container = document.getElementById('accounts-list');
-      if (!accountsData || accountsData.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">هیچ اکانتی تعریف نشده است.</p>';
+    async function fetchProxies() {
+      try {
+        const res = await fetch('/api/proxies');
+        proxiesData = await res.json();
+        renderProxies();
+        updateProxiesStats();
+        updateProxyDropdowns();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function updateAccountsStats() {
+      document.getElementById('sum-total-accounts').textContent = accountsData.length;
+      document.getElementById('sum-ready-cookies').textContent = accountsData.filter(a => a.cookies_saved).length;
+      document.getElementById('sum-proxied-accounts').textContent = accountsData.filter(a => a.proxy_id).length;
+      const totalSent = accountsData.reduce((acc, cur) => acc + (cur.total_tweets || 0), 0);
+      document.getElementById('sum-total-sent').textContent = totalSent;
+    }
+
+    function updateProxiesStats() {
+      document.getElementById('proxy-stat-total').textContent = proxiesData.length;
+      const activeCount = proxiesData.filter(p => p.status === 'active').length;
+      document.getElementById('proxy-stat-active').textContent = activeCount;
+
+      const totalAssigned = proxiesData.reduce((acc, p) => acc + (p.capacity_used || 0), 0);
+      const maxPossible = proxiesData.length * 3;
+      document.getElementById('proxy-stat-capacity').textContent = `${totalAssigned} / ${maxPossible}`;
+
+      const pings = proxiesData.filter(p => p.latency !== null).map(p => p.latency);
+      if (pings.length > 0) {
+        const avg = Math.round(pings.reduce((a, b) => a + b, 0) / pings.length);
+        document.getElementById('proxy-stat-avg-ping').textContent = `${avg} ms`;
+      } else {
+        document.getElementById('proxy-stat-avg-ping').textContent = '---';
+      }
+
+      document.getElementById('proxies-count-badge').textContent = `${proxiesData.length} پروکسی`;
+    }
+
+    function updateProxyDropdowns() {
+      const addSelect = document.getElementById('acc-proxy-select');
+      if (addSelect) {
+        const currentVal = addSelect.value;
+        addSelect.innerHTML = '<option value="">-- بدون پروکسی (IP سرور) --</option>' +
+          proxiesData.map(p => {
+            const isFull = p.capacity_used >= 3;
+            const pInfo = p.x_latency ? ` [X: ${p.x_latency}ms]` : '';
+            const label = `${p.name} [${p.protocol.toUpperCase()}]${pInfo} (${p.capacity_used}/3 اکانت)${isFull ? ' - ظرفیت پر ⛔' : ''}`;
+            return `<option value="${p.id}" ${isFull ? 'disabled' : ''}>${label}</option>`;
+          }).join('');
+        if (currentVal) addSelect.value = currentVal;
+      }
+
+      const editSelect = document.getElementById('edit-acc-proxy');
+      if (editSelect) {
+        const currentVal = editSelect.value;
+        editSelect.innerHTML = '<option value="">-- بدون پروکسی (IP سرور) --</option>' +
+          proxiesData.map(p => {
+            const isFull = p.capacity_used >= 3;
+            const pInfo = p.x_latency ? ` [X: ${p.x_latency}ms]` : '';
+            const label = `${p.name} [${p.protocol.toUpperCase()}]${pInfo} (${p.capacity_used}/3 اکانت)${isFull ? ' - ظرفیت تکمیل' : ''}`;
+            return `<option value="${p.id}">${label}</option>`;
+          }).join('');
+        if (currentVal) editSelect.value = currentVal;
+      }
+    }
+
+    // ==========================================
+    // Render Proxies (Tab 3) with Dual Google & X Pings
+    // ==========================================
+    function renderProxies() {
+      const container = document.getElementById('proxies-list');
+      if (!proxiesData || proxiesData.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted); grid-column:1/-1; text-align:center; padding:2rem;">هیچ کانفیگ پروکسی ثبت نشده است. از فرم بالا کانفیگ اضافه کنید.</p>';
         return;
       }
 
-      container.innerHTML = accountsData.map(acc => {
-        const badge = acc.cookies_saved 
-          ? '<span class="status-badge green">● کوکی فعال</span>'
+      container.innerHTML = proxiesData.map(p => {
+        const isFull = (p.capacity_used || 0) >= 3;
+        const capacityBadge = isFull
+          ? '<span class="capacity-badge full">⛔ ظرفیت تکمیل (۳ از ۳)</span>'
+          : `<span class="capacity-badge available">✅ ${p.capacity_used || 0} از ۳ اکانت</span>`;
+
+        const statusDot = p.status === 'active'
+          ? '<span style="color:var(--success); font-weight:700;">● آنلاین</span>'
+          : (p.status === 'offline' ? '<span style="color:var(--danger); font-weight:700;">● آفلاین</span>' : '<span style="color:var(--text-muted);">● آماده تست</span>');
+
+        // Dual Ping tags: Google & X
+        const googleTag = p.google_latency !== null
+          ? `<span class="ping-tag google" title="پینگ به سرورهای گوگل">🌐 گوگل: ${p.google_latency} ms</span>`
+          : '<span class="ping-tag google">🌐 گوگل: ---</span>';
+
+        const xTag = p.x_latency !== null
+          ? `<span class="ping-tag x" title="پینگ اختصاصی به پلتفرم X (توییتر)">𝕏 ایکس: ${p.x_latency} ms</span>`
+          : '<span class="ping-tag x">𝕏 ایکس: ---</span>';
+
+        const linkedAccsHtml = p.assigned_accounts && p.assigned_accounts.length > 0
+          ? p.assigned_accounts.map(a => `
+              <span class="account-chip" style="font-size:0.72rem; padding:0.15rem 0.5rem;">
+                ${a.name}
+                <button type="button" class="chip-remove-btn" onclick="unassignAccountFromProxy('${p.id}', '${a.id}')" title="قطع اتصال">✕</button>
+              </span>
+            `).join('')
+          : '<span style="font-size:0.75rem; color:var(--text-muted);">هیچ اکانتی متصل نیست</span>';
+
+        return `
+          <div class="proxy-card ${isFull ? 'full' : ''}">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.25rem;">
+                  <span class="protocol-badge ${p.protocol}">${p.protocol}</span>
+                  <h3 style="font-size:0.98rem; font-weight:700;">${p.name}</h3>
+                </div>
+                <p style="font-size:0.78rem; color:var(--text-muted); font-family:monospace;" dir="ltr">${p.server}:${p.port}</p>
+              </div>
+              <div style="text-align:left;">
+                ${statusDot}
+              </div>
+            </div>
+
+            <!-- سنجش پینگ دوگانه گوگل و X -->
+            <div style="background:rgba(0,0,0,0.25); border:1px solid var(--card-border); border-radius:10px; padding:0.6rem 0.75rem;">
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.4rem; font-weight:600;">سنجش پینگ زنده (Google & X):</div>
+              <div class="dual-ping-container">
+                ${googleTag}
+                ${xTag}
+              </div>
+            </div>
+
+            <!-- وضعیت ظرفیت (حداکثر ۳ اکانت) -->
+            <div style="background:rgba(0,0,0,0.3); border:1px solid var(--card-border); border-radius:10px; padding:0.75rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                <span style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">اکانت‌های متصل:</span>
+                ${capacityBadge}
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:0.35rem;">
+                ${linkedAccsHtml}
+              </div>
+            </div>
+
+            <div style="display:flex; gap:0.4rem; margin-top:auto;">
+              <button class="btn btn-outline btn-sm" style="flex:1;" onclick="testSingleProxy('${p.id}')">
+                ⚡ تست پینگ دوگانه
+              </button>
+              <button class="btn btn-purple btn-sm" style="flex:1;" ${isFull ? 'disabled title="ظرفیت تکمیل است"' : ''} onclick="openAssignProxyModal('${p.id}', '${p.name}')">
+                🔗 اتصال اکانت (+)
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="handleDeleteProxy('${p.id}', '${p.name}')">
+                🗑️ حذف
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function handleAddProxy(e) {
+      e.preventDefault();
+      const rawUrls = document.getElementById('proxy-input-urls').value.trim();
+      if (!rawUrls) {
+        showToast('لطفاً حداقل یک کانفیگ پروکسی وارد کنید.', 'error');
+        return;
+      }
+
+      showToast('در حال ثبت و بارگذاری کانفیگ در هسته Xray...', 'info');
+      try {
+        const res = await fetch('/api/proxies', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ urls: rawUrls })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`تعداد ${data.count} پروکسی با موفقیت اضافه شد.`, 'success');
+          document.getElementById('proxy-input-urls').value = '';
+          fetchProxies();
+          fetchAccounts();
+        } else {
+          showToast(data.error || 'خطا در ثبت پروکسی', 'error');
+        }
+      } catch (err) {
+        showToast('خطا در برقراری ارتباط با سرور', 'error');
+      }
+    }
+
+    async function testSingleProxy(id) {
+      showToast('در حال تست پینگ اختصاصی گوگل و پلتفرم X...', 'info');
+      try {
+        const res = await fetch(`/api/proxies/${id}/test`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`پاسخ پینگ: گوگل ${data.google_latency}ms | ایکس ${data.x_latency}ms`, 'success');
+          fetchProxies();
+          loadLogs();
+        } else {
+          showToast(data.error || 'خطا در تست پینگ', 'error');
+        }
+      } catch (err) {
+        showToast('خطا در ارسال درخواست تست', 'error');
+      }
+    }
+
+    async function testAllProxies() {
+      showToast('شروع تست پینگ سراسری Google و X برای تمام پروکسی‌ها...', 'info');
+      try {
+        const res = await fetch('/api/proxies/test-all', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('تست پینگ گوگل و X برای تمام پروکسی‌ها با موفقیت ثبت شد.', 'success');
+          fetchProxies();
+          loadLogs();
+        }
+      } catch (err) {
+        showToast('خطا در اجرای تست پینگ گروهی', 'error');
+      }
+    }
+
+    // Deletion Handlers
+    async function handleDeleteProxy(id, name) {
+      if (!confirm(`آیا از حذف پروکسی "${name}" مطمئن هستید؟ تمام اکانت‌های متصل به آن آزاد خواهند شد.`)) return;
+      try {
+        const res = await fetch(`/api/proxies/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('پروکسی با موفقیت حذف گردید.', 'success');
+          fetchProxies();
+          fetchAccounts();
+          loadLogs();
+        }
+      } catch (err) {
+        showToast('خطا در حذف پروکسی', 'error');
+      }
+    }
+
+    async function handleClearAllProxies() {
+      if (!confirm('آیا مطمئن هستید که می‌خواهید تمام پروکسی‌های ثبت‌شده را پاکسازی کنید؟')) return;
+      try {
+        const res = await fetch('/api/proxies/clear-all', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message, 'success');
+          fetchProxies();
+          fetchAccounts();
+          loadLogs();
+        }
+      } catch (err) {
+        showToast('خطا در پاکسازی پروکسی‌ها', 'error');
+      }
+    }
+
+    function openAssignProxyModal(proxyId, proxyName) {
+      document.getElementById('assign-modal-proxy-id').value = proxyId;
+      document.getElementById('assign-modal-proxy-name').textContent = `پروکسی: ${proxyName}`;
+      
+      const select = document.getElementById('assign-modal-account-select');
+      const unassignedAccounts = accountsData.filter(a => a.proxy_id !== proxyId);
+
+      select.innerHTML = '<option value="">-- انتخاب اکانت --</option>' +
+        unassignedAccounts.map(a => `
+          <option value="${a.id}">${a.name} (${a.username})${a.proxy_id ? ' [دارای پروکسی دیگر]' : ''}</option>
+        `).join('');
+
+      document.getElementById('assign-proxy-modal').classList.add('show');
+    }
+
+    function closeAssignProxyModal() {
+      document.getElementById('assign-proxy-modal').classList.remove('show');
+    }
+
+    async function submitAssignProxy() {
+      const proxyId = document.getElementById('assign-modal-proxy-id').value;
+      const accountId = document.getElementById('assign-modal-account-select').value;
+      if (!accountId) {
+        showToast('لطفاً یک اکانت انتخاب کنید.', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/proxies/${proxyId}/assign`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ account_id: accountId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message, 'success');
+          closeAssignProxyModal();
+          fetchProxies();
+          fetchAccounts();
+        } else {
+          showToast(data.error || 'خطا در انتساب اکانت', 'error');
+        }
+      } catch (err) {
+        showToast('خطا در ارتباط با سرور', 'error');
+      }
+    }
+
+    async function unassignAccountFromProxy(proxyId, accountId) {
+      try {
+        const res = await fetch(`/api/proxies/${proxyId}/unassign`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ account_id: accountId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('اتصال اکانت از پروکسی برداشته شد.', 'info');
+          fetchProxies();
+          fetchAccounts();
+        }
+      } catch (err) {
+        showToast('خطا در لغو اتصال', 'error');
+      }
+    }
+
+    // ==========================================
+    // Render Accounts (Tab 2)
+    // ==========================================
+    function renderAccounts() {
+      const container = document.getElementById('accounts-list');
+      const filterInput = (document.getElementById('accounts-filter-input')?.value || '').toLowerCase().trim();
+
+      const filtered = accountsData.filter(a => 
+        a.name.toLowerCase().includes(filterInput) || a.username.toLowerCase().includes(filterInput)
+      );
+
+      if (!filtered || filtered.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1; text-align:center; padding:1.5rem;">هیچ اکانتی یافت نشد.</p>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(acc => {
+        const cookieBadge = acc.cookies_saved 
+          ? '<span class="status-badge green">● کوکی آماده</span>'
           : '<span class="status-badge red">● بدون کوکی</span>';
+
+        let proxyBadge = '<span class="status-badge" style="background:rgba(255,255,255,0.06); color:var(--text-muted);">⚠️ IP مستقیم سرور</span>';
+        if (acc.proxy) {
+          const pingInfo = acc.proxy.x_latency ? `(${acc.proxy.x_latency}ms)` : '';
+          proxyBadge = `<span class="status-badge purple" title="گوگل: ${acc.proxy.google_latency || '---'}ms | X: ${acc.proxy.x_latency || '---'}ms">🛡️ ${acc.proxy.name.substring(0, 18)} ${pingInfo}</span>`;
+        }
 
         return `
           <div class="account-card">
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-              <div>
-                <h3 style="font-size:1.05rem; font-weight:700;">${acc.name}</h3>
-                <p style="color:var(--text-muted); font-size:0.85rem; font-family:monospace;" dir="ltr">${acc.username}</p>
+              <div style="display:flex; gap:0.6rem; align-items:center;">
+                <div class="account-avatar" style="width:38px; height:38px; font-size:1rem;">${acc.name.charAt(0) || 'X'}</div>
+                <div>
+                  <h3 style="font-size:1rem; font-weight:700;">${acc.name}</h3>
+                  <p style="color:var(--text-muted); font-size:0.82rem; font-family:monospace;" dir="ltr">${acc.username}</p>
+                </div>
               </div>
-              ${badge}
+              <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.3rem;">
+                ${cookieBadge}
+                ${proxyBadge}
+              </div>
             </div>
 
             <div class="account-stats">
               <div><span>تعداد توییت‌ها:</span><strong>${acc.total_tweets || 0}</strong></div>
-              <div><span>آخرین ارسال:</span><span style="font-size:0.75rem;">${acc.last_tweet_at ? new Date(acc.last_tweet_at).toLocaleString('fa-IR') : 'ندارد'}</span></div>
+              <div><span>آخرین ارسال:</span><span style="font-size:0.75rem;">${acc.last_tweet_at ? new Date(acc.last_tweet_at).toLocaleTimeString('fa-IR') : 'ندارد'}</span></div>
             </div>
 
             <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:auto;">
               <div style="display:flex; gap:0.4rem;">
                 <button class="btn btn-primary btn-sm" style="flex:1;" onclick="handleBrowserLogin('${acc.id}')">
-                  🌐 لاگین در کروم
+                  🌐 لاگین مرورگر
                 </button>
                 <button class="btn btn-outline btn-sm" style="flex:1;" onclick="openCookieModal('${acc.id}', '${acc.username}')">
                   📋 پیست کوکی
                 </button>
               </div>
               <div style="display:flex; gap:0.4rem;">
-                <button class="btn btn-outline btn-sm" style="flex:1;" onclick="testAccountCookie('${acc.id}')">
-                  🔍 تست اتصال
+                <button class="btn btn-outline btn-sm" style="flex:1;" onclick="openEditModal('${acc.id}', '${acc.name}', '${acc.username}', '${acc.proxy_id || ''}')">
+                  ✏️ ویرایش و پروکسی
                 </button>
-                <button class="btn btn-danger btn-sm" onclick="handleDeleteAccount('${acc.id}')">
-                  حذف
+                <button class="btn btn-outline btn-sm" style="flex:1;" onclick="testAccountCookie('${acc.id}')">
+                  🔍 تست نشست
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="handleDeleteAccount('${acc.id}', '${acc.name}')">
+                  🗑️ حذف
                 </button>
               </div>
             </div>
@@ -620,79 +1842,151 @@
       }).join('');
     }
 
-    function updateAccountDropdown() {
-      const select = document.getElementById('tweet-account-select');
-      const cur = select.value;
-      select.innerHTML = '<option value="">-- انتخاب اکانت --</option>' + 
-        accountsData.map(a => `<option value="${a.id}">${a.name} (${a.username}) ${a.cookies_saved ? '✅' : '⚠️'}</option>`).join('');
-      if (cur) select.value = cur;
-      onAccountSelectChange();
-    }
-
-    function onAccountSelectChange() {
-      const val = document.getElementById('tweet-account-select').value;
-      const badgeEl = document.getElementById('selected-acc-badge');
-      const acc = accountsData.find(a => a.id === val);
-      if (!acc) {
-        badgeEl.textContent = '';
-        return;
-      }
-      badgeEl.innerHTML = acc.cookies_saved
-        ? `<span style="color:var(--success);">✅ کوکی‌های سشن این اکانت آماده ارسال هستند.</span>`
-        : `<span style="color:var(--danger);">⚠️ کوکی این اکانت ذخیره نشده است! لطفاً در تب اکانت‌ها لاگین کنید یا کوکی را پیست نمایید.</span>`;
-    }
-
     async function handleAddAccount(e) {
       e.preventDefault();
       const name = document.getElementById('acc-name').value.trim();
       const username = document.getElementById('acc-username').value.trim();
+      const proxyId = document.getElementById('acc-proxy-select').value;
+
       try {
         const res = await fetch('/api/accounts', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ name, username })
+          body: JSON.stringify({ name, username, proxy_id: proxyId || null })
         });
         const data = await res.json();
         if (data.success) {
-          showToast('اکانت جدید افزوده شد.', 'success');
+          showToast(`اکانت ${data.account.name} اضافه شد.`, 'success');
           document.getElementById('acc-name').value = '';
           document.getElementById('acc-username').value = '';
+          document.getElementById('acc-proxy-select').value = '';
+          selectedAccountIds.add(data.account.id);
           fetchAccounts();
+          fetchProxies();
+        } else {
+          showToast(data.error || 'خطا در افزودن اکانت', 'error');
         }
-      } catch (err) { showToast('خطا در ثبت اکانت', 'error'); }
+      } catch (err) { 
+        showToast('خطا در ثبت اکانت', 'error'); 
+      }
     }
 
-    async function handleDeleteAccount(id) {
-      if (!confirm('آیا از حذف این اکانت مطمئن هستید؟')) return;
+    function openEditModal(id, name, username, proxyId) {
+      document.getElementById('edit-account-id').value = id;
+      document.getElementById('edit-acc-name').value = name;
+      document.getElementById('edit-acc-username').value = username;
+      
+      const select = document.getElementById('edit-acc-proxy');
+      select.value = proxyId || '';
+      document.getElementById('edit-account-modal').classList.add('show');
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-account-modal').classList.remove('show');
+    }
+
+    async function submitEditAccount() {
+      const id = document.getElementById('edit-account-id').value;
+      const name = document.getElementById('edit-acc-name').value.trim();
+      const username = document.getElementById('edit-acc-username').value.trim();
+      const proxyId = document.getElementById('edit-acc-proxy').value;
+
+      if (!name || !username) {
+        showToast('نام و نام کاربری الزامی است.', 'error');
+        return;
+      }
+      try {
+        const res = await fetch(`/api/accounts/${id}`, {
+          method: 'PATCH',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ name, username, proxy_id: proxyId || null })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('مشخصات اکانت و پروکسی با موفقیت ذخیره شد.', 'success');
+          closeEditModal();
+          fetchAccounts();
+          fetchProxies();
+        } else {
+          showToast(data.error || 'خطا در ویرایش', 'error');
+        }
+      } catch (err) {
+        showToast('خطا در ویرایش اکانت', 'error');
+      }
+    }
+
+    async function handleDeleteAccount(id, name) {
+      if (!confirm(`آیا از حذف اکانت "${name}" مطمئن هستید؟ تمام کوکی‌ها و اتصالات آن پاک خواهند شد.`)) return;
       try {
         const res = await fetch(`/api/accounts/${id}`, { method: 'DELETE' });
         const data = await res.json();
         if (data.success) {
-          showToast('اکانت حذف گردید.', 'success');
+          showToast('اکانت با موفقیت حذف گردید.', 'success');
+          selectedAccountIds.delete(id);
           fetchAccounts();
+          fetchProxies();
           fetchQueue();
+          loadLogs();
         }
-      } catch (err) { showToast('خطا در حذف', 'error'); }
+      } catch (err) { showToast('خطا در حذف اکانت', 'error'); }
     }
 
     async function handleBrowserLogin(id) {
-      showToast('مرورگر باز شد... حداکثر ۱.۵ دقیقه (۹۰ ثانیه) مهلت دارید در کروم لاگین کنید. سیستم به محض ورود، کوکی‌ها را خودکار ذخیره می‌کند.', 'info');
+      showToast('در حال باز کردن مرورگر و استخراج سشن لاگین...', 'info');
       try {
-        const res = await fetch(`/api/accounts/${id}/save-cookies`, { method: 'POST' });
+        const res = await fetch(`/api/accounts/${id}/save-cookies`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'}
+        });
         const data = await res.json();
         if (data.success) {
           showToast(data.message, 'success');
-          fetchAccounts();
+          setTimeout(() => fetchAccounts(), 1200);
         } else {
           showToast(data.message || 'خطا در لاگین', 'error');
         }
       } catch (err) { showToast('خطا در اجرای لاگین', 'error'); }
     }
 
+    let activeCookieTab = 'quick';
+
+    function setCookieModalTab(tab) {
+      activeCookieTab = tab;
+      const tabQuick = document.getElementById('cookie-tab-quick');
+      const tabFull = document.getElementById('cookie-tab-full');
+      const viewQuick = document.getElementById('cookie-view-quick');
+      const viewFull = document.getElementById('cookie-view-full');
+
+      if (tab === 'quick') {
+        tabQuick.className = 'btn btn-sm btn-primary';
+        tabFull.className = 'btn btn-sm btn-outline';
+        viewQuick.style.display = 'block';
+        viewFull.style.display = 'none';
+      } else {
+        tabQuick.className = 'btn btn-sm btn-outline';
+        tabFull.className = 'btn btn-sm btn-primary';
+        viewQuick.style.display = 'none';
+        viewFull.style.display = 'block';
+      }
+    }
+
+    function toggleCookieHelp() {
+      const box = document.getElementById('cookie-help-box');
+      if (box) {
+        box.style.display = box.style.display === 'none' ? 'block' : 'none';
+      }
+    }
+
     function openCookieModal(id, username) {
       document.getElementById('modal-account-id').value = id;
-      document.getElementById('modal-title').textContent = `وارد کردن کوکی برای ${username}`;
-      document.getElementById('modal-cookie-text').value = '';
+      document.getElementById('modal-title').textContent = `🔑 مدیریت کوکی برای ${username}`;
+      const authInput = document.getElementById('modal-cookie-authtoken');
+      if (authInput) authInput.value = '';
+      const ct0Input = document.getElementById('modal-cookie-ct0');
+      if (ct0Input) ct0Input.value = '';
+      const fullText = document.getElementById('modal-cookie-text');
+      if (fullText) fullText.value = '';
+      setCookieModalTab('quick');
       document.getElementById('cookie-modal').classList.add('show');
     }
 
@@ -702,32 +1996,47 @@
 
     async function submitDirectCookie() {
       const id = document.getElementById('modal-account-id').value;
-      const text = document.getElementById('modal-cookie-text').value.trim();
-      if (!text) {
-        showToast('لطفاً متن کوکی را وارد نمایید.', 'error');
+      const authVal = document.getElementById('modal-cookie-authtoken')?.value.trim() || '';
+      const ct0Val = document.getElementById('modal-cookie-ct0')?.value.trim() || '';
+      const textVal = document.getElementById('modal-cookie-text')?.value.trim() || '';
+
+      let payload = null;
+
+      if (activeCookieTab === 'quick' && authVal) {
+        payload = { auth_token: authVal, ct0: ct0Val };
+      } else if (textVal) {
+        payload = textVal;
+      } else if (authVal) {
+        payload = { auth_token: authVal, ct0: ct0Val };
+      }
+
+      if (!payload) {
+        showToast('لطفاً توکن auth_token یا متن کوکی را وارد نمایید.', 'error');
         return;
       }
+
       try {
-        const res = await fetch(`/api/accounts/${id}/cookies/import`, {
+        const res = await fetch(`/api/cookies/${id}`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ cookies: text })
+          body: JSON.stringify(payload)
         });
         const data = await res.json();
         if (data.success) {
-          showToast(data.message, 'success');
+          showToast(data.message || 'کوکی با موفقیت ذخیره و نشست فعال شد!', 'success');
           closeCookieModal();
           fetchAccounts();
+          loadLogs();
         } else {
           showToast(data.error || 'فرمت کوکی نامعتبر است', 'error');
         }
       } catch (e) {
-        showToast('خطا در ثبت کوکی', 'error');
+        showToast('خطا در ذخیره کوکی', 'error');
       }
     }
 
     async function testAccountCookie(id) {
-      showToast('در حال تست اعتبار کوکی با اتصال به x.com/home...', 'info');
+      showToast('در حال تست اعتبار سشن کوکی...', 'info');
       try {
         const res = await fetch(`/api/accounts/${id}/cookies/test`, { method: 'POST' });
         const data = await res.json();
@@ -741,10 +2050,14 @@
       }
     }
 
+    // ==========================================
+    // Tweet Sending Logic (Multi-Account & Proxy Routing)
+    // ==========================================
     async function handleSendTweetAction(actionType) {
-      const accountId = document.getElementById('tweet-account-select').value;
-      if (!accountId) {
-        showToast('لطفاً اکانت ارسال‌کننده را انتخاب کنید.', 'error');
+      const accountIds = Array.from(selectedAccountIds);
+      if (accountIds.length === 0) {
+        showToast('لطفاً حداقل یک اکانت را انتخاب کنید.', 'error');
+        toggleAccountDropdown();
         return;
       }
 
@@ -757,43 +2070,46 @@
         }
 
         if (actionType === 'now') {
-          showToast('در حال ارسال فوری با مکانیزم ضد بن...', 'info');
+          showToast(`در حال ارسال امن با پروکسی‌های Xray برای ${accountIds.length} اکانت...`, 'info');
           const res = await fetch('/api/tweet/now', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ account_id: accountId, text })
+            body: JSON.stringify({ account_ids: accountIds, text })
           });
           const data = await res.json();
           if (data.success) {
-            showToast('توییت با موفقیت در X منتشر شد! 🎉', 'success');
+            showToast(`توییت با موفقیت در ${data.success_count} اکانت منتشر شد! 🎉`, 'success');
             document.getElementById('tweet-content').value = '';
-            updateCharCount();
+            onTweetTextChange();
             fetchAccounts();
             fetchQueue();
+            loadLogs();
           } else {
             showToast(data.error || 'خطا در ارسال توییت', 'error');
+            loadLogs();
           }
         } else {
           const res = await fetch('/api/queue', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-              account_id: accountId,
+              account_ids: accountIds,
               text,
               scheduled_at: sched ? new Date(sched).toISOString() : null
             })
           });
           const data = await res.json();
           if (data.success) {
-            showToast('به صف زمان‌بندی اضافه شد.', 'success');
+            showToast(`توییت برای ${accountIds.length} اکانت به صف زمان‌بندی اضافه شد.`, 'success');
             document.getElementById('tweet-content').value = '';
+            onTweetTextChange();
             fetchQueue();
+            loadLogs();
           } else {
-            showToast(data.error, 'error');
+            showToast(data.error || 'خطا در افزودن به صف', 'error');
           }
         }
       } else {
-        // ارسال گروهی
         const rawText = document.getElementById('batch-content').value.trim();
         const interval = document.getElementById('batch-interval').value;
         if (!rawText) {
@@ -804,18 +2120,19 @@
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
-            account_id: accountId,
+            account_ids: accountIds,
             text: rawText,
             interval_minutes: interval
           })
         });
         const data = await res.json();
         if (data.success) {
-          showToast(`تعداد ${data.count} توییت با فاصله امن در صف قرار گرفتند.`, 'success');
+          showToast(`تعداد ${data.count} توییت گروهی با زمان‌بندی ایمن در صف قرار گرفتند.`, 'success');
           document.getElementById('batch-content').value = '';
           fetchQueue();
+          loadLogs();
         } else {
-          showToast(data.error, 'error');
+          showToast(data.error || 'خطا در ارسال گروهی', 'error');
         }
       }
     }
@@ -835,38 +2152,45 @@
 
       const tbody = document.getElementById('queue-table-body');
       if (queueData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">صف خالی است.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">صف خالی است.</td></tr>';
       } else {
         tbody.innerHTML = queueData.map(item => {
-          const acc = accountsData.find(a => a.id === item.account_id) || { name: 'اکانت', username: '' };
+          const acc = accountsData.find(a => a.id === item.account_id) || { name: item.account_name || 'اکانت', username: item.username || '' };
           let st = item.status === 'sent' ? '<span class="status-badge green">ارسال شد</span>' :
-                   (item.status === 'pending' ? '<span class="status-badge" style="color:var(--accent-blue)">در انتظار</span>' : '<span class="status-badge red">خطا</span>');
-          const btn = item.status === 'pending' ? `<button class="btn btn-danger btn-sm" onclick="deleteQueueItem('${item.id}')">حذف</button>` : '-';
+                   (item.status === 'pending' ? '<span class="status-badge blue">در انتظار</span>' : '<span class="status-badge red">خطا</span>');
+          
           return `
             <tr>
               <td><strong>${acc.name}</strong> <span style="font-size:0.75rem;color:var(--text-muted)">(${acc.username})</span></td>
-              <td style="max-width:300px;word-break:break-word;">${item.text}</td>
+              <td><span class="status-badge purple" style="font-size:0.72rem;">${item.proxy_info || 'IP سرور'}</span></td>
+              <td style="max-width:320px;word-break:break-word;">${item.text}</td>
               <td>${item.scheduled_at ? new Date(item.scheduled_at).toLocaleString('fa-IR') : 'فوری'}</td>
               <td>${st}</td>
-              <td>${btn}</td>
+              <td>
+                <button class="btn btn-danger btn-sm" onclick="deleteQueueItem('${item.id}')" title="حذف از صف">
+                  🗑️ حذف
+                </button>
+              </td>
             </tr>
           `;
         }).join('');
       }
 
+      // جدول آخرین توییت‌ها در تب اول
       const rtable = document.getElementById('recent-tweets-table');
       const recent = [...queueData].slice(-8).reverse();
       if (recent.length === 0) {
-        rtable.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">توییتی ثبت نشده است.</td></tr>';
+        rtable.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">توییتی ثبت نشده است.</td></tr>';
       } else {
         rtable.innerHTML = recent.map(item => {
-          const acc = accountsData.find(a => a.id === item.account_id) || { name: 'اکانت' };
-          let badge = item.status === 'sent' ? '<span class="status-badge green">ارسال شد</span>' :
-                      (item.status === 'pending' ? '<span class="status-badge" style="color:var(--accent-blue)">در صف</span>' : '<span class="status-badge red">خطا</span>');
+          const acc = accountsData.find(a => a.id === item.account_id) || { name: item.account_name || 'اکانت' };
+          let badge = item.status === 'sent' ? '<span class="status-badge green">منتشر شد</span>' :
+                      (item.status === 'pending' ? '<span class="status-badge blue">در صف</span>' : '<span class="status-badge red">خطا</span>');
           return `
             <tr>
               <td>${acc.name}</td>
-              <td style="max-width:280px;word-break:break-word;">${item.text}</td>
+              <td><span class="status-badge purple" style="font-size:0.7rem;">${item.proxy_info || 'IP سرور'}</span></td>
+              <td style="max-width:300px;word-break:break-word;">${item.text}</td>
               <td>${badge}</td>
               <td style="font-size:0.75rem;">${new Date(item.sent_at || item.created_at).toLocaleTimeString('fa-IR')}</td>
             </tr>
@@ -876,34 +2200,98 @@
     }
 
     async function deleteQueueItem(id) {
-      const res = await fetch(`/api/queue/${id}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) { showToast('حذف شد.', 'info'); fetchQueue(); }
+      if (!confirm('آیا از حذف این توییت مطمئن هستید؟')) return;
+      try {
+        const res = await fetch(`/api/queue/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) { 
+          showToast('توییت با موفقیت حذف شد.', 'info'); 
+          fetchQueue(); 
+          loadLogs();
+        }
+      } catch (e) {
+        showToast('خطا در حذف توییت', 'error');
+      }
     }
 
     async function handleClearSent() {
-      const res = await fetch('/api/queue/clear-sent', { method: 'POST' });
-      const data = await res.json();
-      if (data.success) { showToast(`${data.cleared_count} مورد پاک شد.`, 'success'); fetchQueue(); }
+      if (!confirm('آیا مایل به پاکسازی تمام موارد ارسال‌شده و پایان‌یافته هستید؟')) return;
+      try {
+        const res = await fetch('/api/queue/clear-sent', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) { 
+          showToast(`${data.cleared_count} توییت تکمیل‌شده پاکسازی شد.`, 'success'); 
+          fetchQueue(); 
+          loadLogs();
+        }
+      } catch (e) {
+        showToast('خطا در پاکسازی', 'error');
+      }
     }
 
+    async function handleClearAllQueue() {
+      if (!confirm('هشدار: آیا مایلید کل صف توییت‌ها (شامل موارد در انتظار و ارسال‌شده) را کاملاً پاک کنید؟')) return;
+      try {
+        const res = await fetch('/api/queue/clear-all', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message, 'success');
+          fetchQueue();
+          loadLogs();
+        }
+      } catch (e) {
+        showToast('خطا در پاکسازی صف', 'error');
+      }
+    }
+
+    // Logs logic
     async function loadLogs() {
       try {
         const res = await fetch('/api/logs');
-        const logs = await res.json();
+        const data = await res.json();
+        const logs = data.logs || [];
+        const errCount = data.error_count || 0;
+
+        const errBadge = document.getElementById('error-counter-badge');
+        const navErrBadge = document.getElementById('nav-error-badge');
+
+        errBadge.textContent = `${errCount} خطا ثبت شده`;
+        if (errCount > 0) {
+          navErrBadge.style.display = 'inline-block';
+          navErrBadge.textContent = errCount;
+        } else {
+          navErrBadge.style.display = 'none';
+        }
+
         const box = document.getElementById('logs-container');
         box.innerHTML = logs.map(l => `<div class="log-line ${l.level}">[${l.timestamp}] [${l.level}] [${l.logger}] ${l.message}</div>`).join('');
       } catch (e) {}
     }
 
+    async function clearLogs() {
+      if (!confirm('آیا از پاکسازی کنسول لاگ‌ها اطمینان دارید؟')) return;
+      try {
+        const res = await fetch('/api/logs/clear', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('لاگ‌ها با موفقیت پاک شدند.', 'success');
+          loadLogs();
+        }
+      } catch (e) {
+        showToast('خطا در پاکسازی لاگ‌ها', 'error');
+      }
+    }
+
+    // Initialization
     window.addEventListener('DOMContentLoaded', () => {
       fetchAccounts();
+      fetchProxies();
       fetchQueue();
       loadLogs();
       setInterval(() => {
         fetchQueue();
         if (document.getElementById('tab-queue').classList.contains('active')) loadLogs();
-      }, 10000);
+      }, 5000);
     });
   </script>
 </body>

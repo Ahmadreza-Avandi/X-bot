@@ -1,0 +1,64 @@
+[
+  {
+    "id": "prx_fra_vless",
+    "name": "🇩🇪 فرانکفورت آلمان (VLESS CDN)",
+    "url": "vless://b8d3a774-4b53-4dc9-bc89-13e617d5c58a@fra.xraynode.net:443?security=tls&encryption=none&type=ws&host=fra.xraynode.net#%F0%9F%87%A9%F0%9F%87%AA%20Frankfurt%20VLESS",
+    "protocol": "vless",
+    "server": "fra.xraynode.net",
+    "port": 443,
+    "status": "active",
+    "latency": 109,
+    "last_tested_at": "2026-10-12T13:42:39.640Z",
+    "assigned_account_ids": [
+      "acc_8wn0f1nr",
+      "acc_gfbrnegu",
+      "acc_ax7vl0sy"
+    ],
+    "google_latency": 98,
+    "x_latency": 120
+  },
+  {
+    "id": "prx_ams_trojan",
+    "name": "🇳🇱 آمستردام هلند (Trojan gRPC)",
+    "url": "trojan://pass_938a12bc@ams.trojannode.com:443?security=tls&type=grpc&serviceName=tr-service#%F0%9F%87%B3%F0%9F%87%B1%20Amsterdam%20Trojan",
+    "protocol": "trojan",
+    "server": "ams.trojannode.com",
+    "port": 443,
+    "status": "active",
+    "latency": 140,
+    "last_tested_at": "2026-10-12T13:42:39.641Z",
+    "assigned_account_ids": [
+      "acc1"
+    ],
+    "google_latency": 135,
+    "x_latency": 145
+  },
+  {
+    "id": "prx_35m5591s",
+    "name": "Finland-VLESS",
+    "url": "vless://test-uuid@helsinki.xray.net:443?security=tls#Finland-VLESS",
+    "protocol": "vless",
+    "server": "helsinki.xray.net",
+    "port": 443,
+    "status": "active",
+    "latency": 114,
+    "last_tested_at": "2026-10-12T13:42:39.697Z",
+    "assigned_account_ids": [],
+    "google_latency": 97,
+    "x_latency": 130
+  },
+  {
+    "id": "prx_nlyy15h0",
+    "name": "France-Trojan",
+    "url": "trojan://test-pass@paris.xray.net:443#France-Trojan",
+    "protocol": "trojan",
+    "server": "paris.xray.net",
+    "port": 443,
+    "status": "active",
+    "latency": 131,
+    "last_tested_at": "2026-10-12T13:42:39.707Z",
+    "assigned_account_ids": [],
+    "google_latency": 124,
+    "x_latency": 138
+  }
+]

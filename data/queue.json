@@ -1,0 +1,15 @@
+[
+  {
+    "id": "tweet_9pwzbyp8",
+    "account_id": "acc1",
+    "account_name": "اکانت ویرایش شده",
+    "username": "@edited_acc",
+    "proxy_info": "🇳🇱 آمستردام هلند (Trojan gRPC) (TROJAN)",
+    "proxy_server": "ams.trojannode.com",
+    "text": "تست عملکرد پایتون و سیستم ضد بن",
+    "scheduled_at": "2026-10-12T13:51:20.964Z",
+    "sent_at": "2026-10-12T13:51:20.964Z",
+    "status": "sent",
+    "created_at": "2026-10-12T13:51:20.964Z"
+  }
+]

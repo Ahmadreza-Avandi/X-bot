@@ -1,20 +1,52 @@
 [
   {
     "id": "acc1",
-    "name": "اکانت اصلی",
-    "username": "@example",
+    "name": "اکانت ویرایش شده",
+    "username": "@edited_acc",
     "active": true,
-    "last_tweet_at": "2026-10-06T17:55:05.752397",
-    "total_tweets": 1,
-    "cookies_saved": true
+    "last_tweet_at": "2026-10-12T13:51:20.964Z",
+    "total_tweets": 3,
+    "cookies_saved": true,
+    "proxy_id": "prx_ams_trojan"
   },
   {
     "id": "acc_93a66830",
     "name": "تست",
     "username": "@test",
     "active": true,
-    "last_tweet_at": "2026-10-06T17:37:57.728146",
-    "total_tweets": 2,
-    "cookies_saved": true
+    "last_tweet_at": "2026-10-12T13:15:08.084Z",
+    "total_tweets": 3,
+    "cookies_saved": true,
+    "proxy_id": null
+  },
+  {
+    "id": "acc_8wn0f1nr",
+    "name": "اکانت دوم",
+    "username": "@acc2",
+    "active": true,
+    "last_tweet_at": "2026-10-12T13:23:26.190Z",
+    "total_tweets": 1,
+    "cookies_saved": false,
+    "proxy_id": "prx_fra_vless"
+  },
+  {
+    "id": "acc_gfbrnegu",
+    "name": "اکانت سوم",
+    "username": "@acc3",
+    "active": true,
+    "last_tweet_at": null,
+    "total_tweets": 0,
+    "cookies_saved": false,
+    "proxy_id": "prx_fra_vless"
+  },
+  {
+    "id": "acc_ax7vl0sy",
+    "name": "اکانت چهارم",
+    "username": "@acc4",
+    "active": true,
+    "last_tweet_at": null,
+    "total_tweets": 0,
+    "cookies_saved": false,
+    "proxy_id": "prx_fra_vless"
   }
 ]

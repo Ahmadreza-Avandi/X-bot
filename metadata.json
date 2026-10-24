@@ -1,0 +1,8 @@
+{
+  "name": "X Bot Automation Panel",
+  "description": "Comprehensive X (Twitter) bot automation dashboard for account management, cookie handling, and tweet scheduling.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ],
+  "permissions": []
+}
